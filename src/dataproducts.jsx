@@ -8,6 +8,8 @@ export const products = [
     originalPrice: 24900,
     image: "https://images.weserv.nl/?url=https://m.media-amazon.com/images/I/51rZ6GUEoAL.jpg",
     rating: 4.8,
+  },
+  {
     id: 2,
     name: "Gold Chain Necklace Luxury 18K",
     price: 24900,

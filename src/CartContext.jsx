@@ -39,6 +39,18 @@ export function CartProvider({ children }) {
     });
   };
 
+  const decreaseQuantity = (productId) => {
+    setCartItems(prev =>
+      prev.map(item =>
+        item.id === productId ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item
+      )
+    );
+  };
+
+  const removeItem = (productId) => {
+    setCartItems(prev => prev.filter(item => item.id !== productId));
+  };
+
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const likedCount = Object.values(likedProducts).filter(Boolean).length;
@@ -55,6 +67,8 @@ export function CartProvider({ children }) {
       value={{
         cartItems,
         addToCart,
+        decreaseQuantity,
+        removeItem,
         cartCount,
         likedProducts,
         toggleLike,

@@ -8,9 +8,8 @@ export default function Cart() {
 
   // Calculate totals
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = subtotal > 5000 ? 0 : 500; // Free over PKR 5000
-  const tax = subtotal * 0.17; // 17% tax (you can change)
-  const total = subtotal + shipping + tax;
+  const delivery = 170;
+  const total = subtotal + delivery;
 
   const handleRemoveItem = (id) => {
     if (window.confirm("Are you sure you want to remove this item?")) {
@@ -20,16 +19,16 @@ export default function Cart() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-black text-white pt-24 px-4 flex items-center justify-center">
+      <div className="min-h-screen bg-white text-slate-900 pt-24 px-4 flex items-center justify-center">
         <div className="text-center max-w-md">
-          <ShoppingBag size={80} className="mx-auto mb-6 text-gray-600" />
-          <h1 className="text-4xl font-bold mb-4">Your Cart is Empty</h1>
-          <p className="text-lg text-gray-400 mb-8">
+          <ShoppingBag size={80} className="mx-auto mb-6 text-slate-300" />
+          <h1 className="text-4xl font-black mb-4 uppercase tracking-tight">Your Cart is Empty</h1>
+          <p className="text-lg text-slate-500 mb-8 font-medium">
             Looks like you haven't added anything yet. Let's change that!
           </p>
           <Link
             to="/"
-            className="inline-flex items-center px-8 py-4 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-full transition-all duration-300 shadow-lg hover:shadow-rose-500/30 transform hover:-translate-y-1"
+            className="inline-flex items-center px-8 py-4 bg-black hover:bg-slate-800 text-white font-bold uppercase tracking-widest text-sm transition-all duration-300 shadow-sm"
           >
             Start Shopping
           </Link>
@@ -39,32 +38,32 @@ export default function Cart() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pt-24 pb-32 px-4 md:px-8">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pt-24 pb-32 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-black mb-4 md:mb-0">
+          <h1 className="text-4xl md:text-5xl font-black mb-4 md:mb-0 uppercase tracking-tight">
             Your Cart
-            <span className="text-rose-500 ml-3">({cartCount})</span>
+            <span className="text-slate-400 ml-3">({cartCount})</span>
           </h1>
           <Link
             to="/"
-            className="flex items-center gap-2 text-rose-400 hover:text-rose-300 transition-colors font-medium"
+            className="flex items-center gap-2 text-slate-500 hover:text-black transition-colors font-bold uppercase tracking-widest text-xs"
           >
-            <ArrowLeft size={20} /> Continue Shopping
+            <ArrowLeft size={16} /> Continue Shopping
           </Link>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
             {cartItems.map((item) => (
               <div
                 key={item.id}
                 className="
                   flex flex-col sm:flex-row gap-6 
-                  bg-gray-900/70 backdrop-blur-md border border-gray-800 
-                  rounded-2xl p-6 transition-all duration-300 hover:border-rose-600/40 hover:shadow-xl
+                  bg-white border border-slate-200 
+                  rounded-sm p-6 transition-all duration-300 hover:border-slate-400 hover:shadow-sm
                 "
               >
                 {/* Image */}
@@ -72,24 +71,24 @@ export default function Cart() {
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-full h-full object-cover rounded-xl border border-gray-700"
+                    className="w-full h-full object-cover rounded-sm border border-slate-200"
                   />
                 </div>
 
                 {/* Info */}
                 <div className="flex-1">
                   <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-xl font-semibold">{item.name}</h3>
+                    <h3 className="text-lg font-bold text-black">{item.name}</h3>
                     <button
                       onClick={() => handleRemoveItem(item.id)}
-                      className="text-red-400 hover:text-red-300 transition-colors p-1"
+                      className="text-slate-400 hover:text-red-500 transition-colors p-1"
                       title="Remove item"
                     >
-                      <Trash2 size={20} />
+                      <Trash2 size={18} />
                     </button>
                   </div>
 
-                  <p className="text-rose-400 font-bold text-xl mb-4">
+                  <p className="text-black font-black text-xl mb-4">
                     PKR {item.price.toFixed(0)}
                   </p>
 
@@ -97,27 +96,27 @@ export default function Cart() {
                   <div className="flex items-center gap-4 mb-4">
                     <button
                       onClick={() => decreaseQuantity(item.id)}
-                      className="w-10 h-10 flex items-center justify-center bg-gray-800 hover:bg-gray-700 rounded-full transition disabled:opacity-50"
+                      className="w-10 h-10 flex items-center justify-center bg-slate-100 hover:bg-slate-200 rounded-sm transition border border-slate-200 disabled:opacity-50"
                       disabled={item.quantity <= 1}
                     >
-                      <Minus size={18} />
+                      <Minus size={16} />
                     </button>
 
-                    <span className="text-xl font-bold min-w-[40px] text-center">
+                    <span className="text-lg font-black min-w-[40px] text-center">
                       {item.quantity}
                     </span>
 
                     <button
                       onClick={() => addToCart(item)}
-                      className="w-10 h-10 flex items-center justify-center bg-rose-600 hover:bg-rose-700 rounded-full transition"
+                      className="w-10 h-10 flex items-center justify-center bg-black hover:bg-slate-800 text-white rounded-sm transition"
                     >
-                      <Plus size={18} />
+                      <Plus size={16} />
                     </button>
                   </div>
 
                   {/* Total for this item */}
-                  <p className="text-gray-300">
-                    Item Total: <span className="font-semibold text-white">PKR {(item.price * item.quantity).toFixed(0)}</span>
+                  <p className="text-slate-500 font-medium text-sm">
+                    Item Total: <span className="font-black text-black">PKR {(item.price * item.quantity).toFixed(0)}</span>
                   </p>
                 </div>
               </div>
@@ -128,58 +127,44 @@ export default function Cart() {
           <div className="lg:col-span-1">
             <div className="
               lg:sticky lg:top-24 
-              bg-gray-900/90 backdrop-blur-lg border border-gray-800 
-              rounded-2xl p-6 shadow-2xl
+              bg-white border border-slate-200 
+              rounded-sm p-6 shadow-sm
             ">
-              <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
+              <h2 className="text-sm font-bold uppercase tracking-widest mb-6 pb-4 border-b border-slate-200">Order Summary</h2>
 
               <div className="space-y-4 mb-8">
-                <div className="flex justify-between text-gray-300">
+                <div className="flex justify-between text-slate-600 font-medium">
                   <span>Subtotal ({cartCount} items)</span>
-                  <span>PKR {subtotal.toFixed(2)}</span>
+                  <span className="text-black font-bold">PKR {subtotal.toFixed(0)}</span>
                 </div>
-                <div className="flex justify-between text-gray-300">
-                  <span>Shipping</span>
-                  <span className={shipping === 0 ? "text-green-400" : ""}>
-                    {shipping === 0 ? "Free" : `PKR ${shipping}`}
-                  </span>
+                <div className="flex justify-between text-slate-600 font-medium">
+                  <span>Delivery Charges</span>
+                  <span className="text-black font-bold">PKR {delivery}</span>
                 </div>
-                <div className="flex justify-between text-gray-300">
-                  <span>Estimated Tax (17%)</span>
-                  <span>PKR {tax.toFixed(2)}</span>
-                </div>
-                <div className="border-t border-gray-700 pt-4 mt-4">
-                  <div className="flex justify-between text-xl font-bold">
+                <div className="border-t border-slate-200 pt-4 mt-4">
+                  <div className="flex justify-between text-xl font-black">
                     <span>Total</span>
-                    <span className="text-rose-400">PKR {total.toFixed(2)}</span>
+                    <span className="text-black">PKR {total.toFixed(0)}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Free Shipping Progress */}
+              {/* Delivery Info */}
               <div className="mb-6">
-                <div className="w-full bg-gray-800 rounded-full h-2.5 mb-2">
-                  <div
-                    className="bg-gradient-to-r from-rose-500 to-pink-500 h-2.5 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min((subtotal / 5000) * 100, 100)}%` }}
-                  ></div>
-                </div>
-                <p className="text-sm text-gray-400 text-center">
-                  {subtotal >= 5000
-                    ? "You've unlocked free shipping! 🎉"
-                    : `Add PKR ${(5000 - subtotal).toFixed(0)} more for free shipping`}
+                <p className="text-xs text-slate-400 text-center font-bold uppercase tracking-widest">
+                  Flat delivery charges: PKR 170
                 </p>
               </div>
 
               {/* Buttons */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <Link
                   to="/checkout"
-                 className="
-                  w-full block text-center py-4 bg-gradient-to-r from-rose-600 to-pink-600 
-                  text-white font-bold text-lg rounded-xl 
-                  hover:from-rose-700 hover:to-pink-700 
-                  transition-all duration-300 transform hover:scale-[1.02] shadow-lg
+                  className="
+                  w-full block text-center py-4 bg-black 
+                  text-white font-bold uppercase tracking-widest text-sm
+                  hover:bg-slate-800
+                  transition-all duration-300 shadow-sm
                 ">
                   Proceed to Checkout
                 </Link>
@@ -187,20 +172,14 @@ export default function Cart() {
                 <Link
                   to="/"
                   className="
-                    w-full block py-4 bg-transparent border-2 border-gray-600 
-                    text-white font-medium text-lg rounded-xl text-center
-                    hover:bg-gray-800 hover:border-gray-500 
+                    w-full block py-4 bg-transparent border-2 border-slate-200 
+                    text-slate-600 font-bold uppercase tracking-widest text-sm text-center
+                    hover:bg-slate-50 hover:border-slate-400 
                     transition-all duration-300
                   "
                 >
                   Continue Shopping
                 </Link>
-                {/* <Link
-                  to="/checkout"
-                  className="w-full py-4 bg-gradient-to-r from-rose-600 to-pink-600 text-white font-bold text-lg rounded-xl hover:from-rose-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
-                >
-                  Proceed to Checkout
-                </Link> */}
               </div>
             </div>
           </div>

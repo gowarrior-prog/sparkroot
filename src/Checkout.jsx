@@ -1,11 +1,11 @@
 // src/pages/Checkout.jsx
 import { useState } from 'react';
 import { useCart } from './CartContext'; // adjust path
-import { CreditCard, Truck, Banknote, CheckCircle, Tag } from 'lucide-react';
+import { CreditCard, Truck, ShoppingBag, Info } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function Checkout() {
-  const { cartItems, cartCount } = useCart();
+  const { cartItems, cartCount, removeItem } = useCart();
   const navigate = useNavigate();
 
   // Form states
@@ -15,54 +15,69 @@ export default function Checkout() {
     city: '',
     phone: '',
     email: '',
-    promoCode: '',
   });
 
-  const [appliedDiscount, setAppliedDiscount] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod, setPaymentMethod] = useState('cod');
 
   // Calculations
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = subtotal > 5000 ? 0 : 500;
-  const tax = subtotal * 0.17;
-  const discount = appliedDiscount;
-  const total = subtotal + shipping + tax - discount;
+  const delivery = 170;
+  const total = subtotal + delivery;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const applyPromo = () => {
-    if (formData.promoCode === 'LUXE10') {
-      setAppliedDiscount(subtotal * 0.10); // 10% off example
-      alert('Promo code applied! 10% discount added.');
-    } else {
-      alert('Invalid promo code.');
-    }
-  };
-
-  const handlePlaceOrder = (e) => {
+  const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (!formData.fullName || !formData.address || !formData.phone) {
       alert('Please fill all required fields.');
       return;
     }
-    alert('Order placed successfully! Thank you for shopping with LUXE Mart.');
-    // Here you can clear cart, redirect to thank you page, etc.
-    // Example: navigate('/thank-you');
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please sign in to place an order.');
+      navigate('/signin');
+      return;
+    }
+
+    try {
+      const res = await fetch('http://localhost:5000/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          total,
+          items: cartItems.map(i => ({ name: i.name, quantity: i.quantity, price: i.price })),
+          address: `${formData.address}, ${formData.city}`,
+          phone: formData.phone
+        })
+      });
+
+      if (res.ok) {
+        // Clear cart after order
+        cartItems.forEach(item => removeItem(item.id));
+        navigate('/my-orders');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to place order');
+      }
+    } catch (err) {
+      alert('Server error. Please try again.');
+    }
   };
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-black text-white pt-24 px-4 flex items-center justify-center">
+      <div className="min-h-screen bg-white text-slate-900 pt-24 px-4 flex items-center justify-center">
         <div className="text-center">
-          <ShoppingBag size={80} className="mx-auto mb-6 text-gray-600" />
-          <h1 className="text-4xl font-bold mb-4">Your Cart is Empty</h1>
-          <p className="text-lg text-gray-400 mb-8">Add items to proceed to checkout.</p>
+          <ShoppingBag size={80} className="mx-auto mb-6 text-slate-300" />
+          <h1 className="text-4xl font-bold mb-4 tracking-tight">Your Cart is Empty</h1>
+          <p className="text-lg text-slate-500 mb-8">Add items to proceed to checkout.</p>
           <Link
             to="/shop"
-            className="inline-flex px-8 py-4 bg-rose-600 hover:bg-rose-700 text-white rounded-full font-semibold transition-all"
+            className="inline-flex px-8 py-4 bg-black hover:bg-slate-800 text-white rounded-none font-semibold transition-all tracking-wide uppercase text-sm"
           >
             Start Shopping
           </Link>
@@ -72,153 +87,111 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pt-24 pb-20 px-4 md:px-8">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pt-24 pb-20 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <h1 className="text-4xl md:text-5xl font-black text-center md:text-left mb-12">
-          Checkout
-          <span className="text-rose-500 ml-3">({cartCount} items)</span>
+        <h1 className="text-4xl md:text-5xl font-black text-center md:text-left mb-12 tracking-tight">
+          CHECKOUT
+          <span className="text-slate-500 ml-3 text-2xl font-medium">({cartCount} items)</span>
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           {/* Left - Forms & Payment */}
           <div className="lg:col-span-2 space-y-10">
+            {/* Notice about 24 hours */}
+            <div className="bg-blue-50 border border-blue-200 p-4 flex gap-3 text-blue-800">
+              <Info className="shrink-0 mt-0.5" size={20} />
+              <p className="text-sm font-medium">
+                <strong>Important:</strong> You have a <span className="underline">24-hour window</span> to cancel your order after placement. Orders cannot be canceled after 1 day.
+              </p>
+            </div>
+
             {/* Shipping Address */}
-            <div className="bg-gray-900/70 backdrop-blur-md border border-gray-800 rounded-2xl p-8">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                <Truck size={24} className="text-rose-400" /> Shipping Address
+            <div className="bg-white border border-slate-200 p-8 shadow-sm">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 tracking-tight">
+                <Truck size={24} className="text-black" /> Shipping Address
               </h2>
 
               <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm text-gray-300 mb-2">Full Name *</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">Full Name *</label>
                   <input
                     type="text"
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleChange}
                     required
-                    className="w-full p-4 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-rose-500 transition"
+                    className="w-full p-4 bg-slate-50 border border-slate-200 focus:outline-none focus:border-black transition"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-300 mb-2">Phone Number *</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">Phone Number *</label>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
                     required
-                    className="w-full p-4 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-rose-500 transition"
+                    className="w-full p-4 bg-slate-50 border border-slate-200 focus:outline-none focus:border-black transition"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm text-gray-300 mb-2">Address *</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">Address *</label>
                   <input
                     type="text"
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
                     required
-                    className="w-full p-4 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-rose-500 transition"
+                    className="w-full p-4 bg-slate-50 border border-slate-200 focus:outline-none focus:border-black transition"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-300 mb-2">City</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">City</label>
                   <input
                     type="text"
                     name="city"
                     value={formData.city}
                     onChange={handleChange}
-                    className="w-full p-4 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-rose-500 transition"
+                    className="w-full p-4 bg-slate-50 border border-slate-200 focus:outline-none focus:border-black transition"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-300 mb-2">Email</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">Email</label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full p-4 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-rose-500 transition"
+                    className="w-full p-4 bg-slate-50 border border-slate-200 focus:outline-none focus:border-black transition"
                   />
                 </div>
               </form>
             </div>
 
             {/* Payment Method */}
-            <div className="bg-gray-900/70 backdrop-blur-md border border-gray-800 rounded-2xl p-8">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                <CreditCard size={24} className="text-rose-400" /> Payment Method
+            <div className="bg-white border border-slate-200 p-8 shadow-sm">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 tracking-tight">
+                <CreditCard size={24} className="text-black" /> Payment Method
               </h2>
 
               <div className="space-y-4">
-                <label className="flex items-center gap-3 p-4 bg-gray-800 rounded-xl cursor-pointer hover:bg-gray-700 transition">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="card"
-                    checked={paymentMethod === 'card'}
-                    onChange={() => setPaymentMethod('card')}
-                    className="w-5 h-5 accent-rose-500"
-                  />
-                  <CreditCard size={20} />
-                  <span className="font-medium">Credit / Debit Card</span>
-                </label>
-
-                <label className="flex items-center gap-3 p-4 bg-gray-800 rounded-xl cursor-pointer hover:bg-gray-700 transition">
+                <label className="flex items-center gap-3 p-4 bg-slate-50 cursor-pointer hover:bg-slate-100 transition border border-black">
                   <input
                     type="radio"
                     name="payment"
                     value="cod"
                     checked={paymentMethod === 'cod'}
                     onChange={() => setPaymentMethod('cod')}
-                    className="w-5 h-5 accent-rose-500"
+                    className="w-5 h-5 accent-black"
                   />
-                  <Truck size={20} />
-                  <span className="font-medium">Cash on Delivery</span>
+                  <Truck size={20} className="text-black" />
+                  <span className="font-semibold">Cash on Delivery</span>
                 </label>
-
-                <label className="flex items-center gap-3 p-4 bg-gray-800 rounded-xl cursor-pointer hover:bg-gray-700 transition">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="bank"
-                    checked={paymentMethod === 'bank'}
-                    onChange={() => setPaymentMethod('bank')}
-                    className="w-5 h-5 accent-rose-500"
-                  />
-                  <Banknote size={20} />
-                  <span className="font-medium">Bank Transfer</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Promo Code */}
-            <div className="bg-gray-900/70 backdrop-blur-md border border-gray-800 rounded-2xl p-8">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                <Tag size={24} className="text-rose-400" /> Promo Code
-              </h2>
-
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  name="promoCode"
-                  value={formData.promoCode}
-                  onChange={handleChange}
-                  placeholder="Enter promo code"
-                  className="flex-1 p-4 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-rose-500 transition"
-                />
-                <button
-                  onClick={applyPromo}
-                  className="px-6 py-4 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-lg transition"
-                >
-                  Apply
-                </button>
               </div>
             </div>
           </div>
@@ -227,40 +200,26 @@ export default function Checkout() {
           <div className="lg:col-span-1">
             <div className="
               lg:sticky lg:top-24 
-              bg-gray-900/90 backdrop-blur-lg border border-gray-800 
-              rounded-2xl p-8 shadow-2xl
+              bg-white border border-slate-200 
+              p-8 shadow-sm
             ">
-              <h2 className="text-2xl font-bold mb-8">Order Summary</h2>
+              <h2 className="text-2xl font-bold mb-8 tracking-tight">ORDER SUMMARY</h2>
 
               <div className="space-y-5 mb-8">
-                <div className="flex justify-between text-gray-300">
+                <div className="flex justify-between text-slate-600 font-medium">
                   <span>Subtotal ({cartCount} items)</span>
                   <span>PKR {subtotal.toLocaleString('en-PK')}</span>
                 </div>
 
-                <div className="flex justify-between text-gray-300">
-                  <span>Shipping</span>
-                  <span className={shipping === 0 ? "text-green-400" : ""}>
-                    {shipping === 0 ? "Free" : `PKR ${shipping.toLocaleString('en-PK')}`}
-                  </span>
+                <div className="flex justify-between text-slate-600 font-medium">
+                  <span>Delivery Charges</span>
+                  <span>PKR {delivery}</span>
                 </div>
 
-                <div className="flex justify-between text-gray-300">
-                  <span>Estimated Tax (17%)</span>
-                  <span>PKR {tax.toFixed(2)}</span>
-                </div>
-
-                {discount > 0 && (
-                  <div className="flex justify-between text-green-400">
-                    <span>Discount (Promo)</span>
-                    <span>- PKR {discount.toFixed(2)}</span>
-                  </div>
-                )}
-
-                <div className="border-t border-gray-700 pt-5 mt-5">
-                  <div className="flex justify-between text-2xl font-bold">
-                    <span>Grand Total</span>
-                    <span className="text-rose-400">PKR {total.toLocaleString('en-PK', { minimumFractionDigits: 2 })}</span>
+                <div className="border-t border-slate-200 pt-5 mt-5">
+                  <div className="flex justify-between text-2xl font-black">
+                    <span>TOTAL</span>
+                    <span>PKR {total.toLocaleString('en-PK')}</span>
                   </div>
                 </div>
               </div>
@@ -268,16 +227,16 @@ export default function Checkout() {
               <button
                 onClick={handlePlaceOrder}
                 className="
-                  w-full py-5 bg-gradient-to-r from-rose-600 to-pink-600 
-                  text-white font-bold text-lg rounded-xl 
-                  hover:from-rose-700 hover:to-pink-700 
-                  transition-all duration-300 transform hover:scale-[1.02] shadow-xl hover:shadow-rose-500/40
+                  w-full py-5 bg-black
+                  text-white font-bold text-sm tracking-widest uppercase
+                  hover:bg-slate-800
+                  transition-all duration-300
                 "
               >
                 Place Order
               </button>
 
-              <p className="text-center text-sm text-gray-400 mt-6">
+              <p className="text-center text-sm text-slate-500 font-medium mt-6">
                 Secure checkout • 100% safe payment
               </p>
             </div>
