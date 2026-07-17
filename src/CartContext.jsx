@@ -5,6 +5,7 @@ const CartContext = createContext();
 
 const CART_STORAGE_KEY = 'luxe-mart-cart';
 const LIKED_STORAGE_KEY = 'luxe-mart-liked';
+const LIKED_PRODUCTS_DATA_KEY = 'luxe-mart-liked-data';
 
 export function CartProvider({ children }) {
   // Cart
@@ -13,9 +14,15 @@ export function CartProvider({ children }) {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Liked products
+  // Liked products (id -> true/false)
   const [likedProducts, setLikedProducts] = useState(() => {
     const saved = localStorage.getItem(LIKED_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  // Liked products DATA (id -> {id, name, price, image, category})
+  const [likedProductsData, setLikedProductsData] = useState(() => {
+    const saved = localStorage.getItem(LIKED_PRODUCTS_DATA_KEY);
     return saved ? JSON.parse(saved) : {};
   });
 
@@ -26,6 +33,10 @@ export function CartProvider({ children }) {
   useEffect(() => {
     localStorage.setItem(LIKED_STORAGE_KEY, JSON.stringify(likedProducts));
   }, [likedProducts]);
+
+  useEffect(() => {
+    localStorage.setItem(LIKED_PRODUCTS_DATA_KEY, JSON.stringify(likedProductsData));
+  }, [likedProductsData]);
 
   const addToCart = (product) => {
     setCartItems(prev => {
@@ -55,11 +66,25 @@ export function CartProvider({ children }) {
 
   const likedCount = Object.values(likedProducts).filter(Boolean).length;
 
-  const toggleLike = (productId) => {
+  // toggleLike now also saves product data
+  const toggleLike = (productId, productData = null) => {
     setLikedProducts(prev => ({
       ...prev,
       [productId]: !prev[productId]
     }));
+    // Save product data when liking (not when unliking)
+    if (productData && !likedProducts[productId]) {
+      setLikedProductsData(prev => ({
+        ...prev,
+        [productId]: {
+          id: productData.id,
+          name: productData.name,
+          price: productData.price,
+          image: productData.image,
+          category: productData.category || '',
+        }
+      }));
+    }
   };
 
   return (
@@ -71,6 +96,7 @@ export function CartProvider({ children }) {
         removeItem,
         cartCount,
         likedProducts,
+        likedProductsData,
         toggleLike,
         likedCount
       }}

@@ -43,9 +43,9 @@ export default function Category() {
     alert('Added to cart!');
   };
 
-  const handleLike = (e, productId) => {
+  const handleLike = (e, product) => {
     e.stopPropagation();
-    toggleLike(productId);
+    toggleLike(product.id, product);
   };
 
   return (
@@ -91,7 +91,7 @@ export default function Category() {
                   
                   {/* Heart/Wishlist Button */}
                   <button
-                    onClick={(e) => handleLike(e, product.id)}
+                    onClick={(e) => handleLike(e, product)}
                     className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full border border-slate-200 hover:bg-white transition-all z-10 shadow-sm"
                   >
                     <Heart size={18} className={likedProducts[product.id] ? 'fill-red-500 text-red-500' : 'text-slate-400'} />
