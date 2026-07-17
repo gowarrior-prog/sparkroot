@@ -261,7 +261,6 @@ export default function MyOrders() {
         )}
       </div>
       </div>
-      </div>
     </>
   );
 }
