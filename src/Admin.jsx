@@ -485,8 +485,13 @@ export default function Admin() {
                               <p className="text-xs text-slate-500 font-medium">{o.user?.email}</p>
                             </td>
                             <td className="px-6 py-4">
-                              <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-sm text-[10px] font-bold uppercase border border-slate-200 flex items-center gap-1 w-max tracking-widest">
-                                <Clock size={12} /> {o.status}
+                              <span className={`px-2 py-1 rounded-sm text-[10px] font-bold uppercase border flex items-center gap-1 w-max tracking-widest ${
+                                o.status === 'Canceled' ? 'bg-red-50 text-red-600 border-red-200' :
+                                o.status === 'delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                                o.status === 'shipped' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                                'bg-slate-100 text-slate-600 border-slate-200'
+                              }`}>
+                                {o.status === 'Canceled' ? <Trash2 size={12} /> : <Clock size={12} />} {o.status}
                               </span>
                             </td>
                             <td className="px-6 py-4 font-black text-black text-sm">PKR {o.total.toLocaleString()}</td>

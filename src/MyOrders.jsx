@@ -16,6 +16,7 @@ export default function MyOrders() {
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [cancellingId, setCancellingId] = useState(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
 
   const token = localStorage.getItem('token');
@@ -26,6 +27,12 @@ export default function MyOrders() {
       return;
     }
     fetchOrders();
+
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, []);
 
   const fetchOrders = async () => {
@@ -46,17 +53,20 @@ export default function MyOrders() {
 
   const canCancel = (order) => {
     if (order.status === 'Canceled' || order.status === 'delivered' || order.status === 'shipped') return false;
-    const hoursPassed = (new Date() - new Date(order.createdAt)) / (1000 * 60 * 60);
+    const hoursPassed = (currentTime - new Date(order.createdAt)) / (1000 * 60 * 60);
     return hoursPassed <= 24;
   };
 
   const getTimeRemaining = (order) => {
-    const hoursPassed = (new Date() - new Date(order.createdAt)) / (1000 * 60 * 60);
-    const hoursLeft = Math.max(0, 24 - hoursPassed);
-    if (hoursLeft <= 0) return null;
-    const h = Math.floor(hoursLeft);
-    const m = Math.floor((hoursLeft - h) * 60);
-    return `${h}h ${m}m remaining`;
+    const msPassed = currentTime - new Date(order.createdAt);
+    const msLeft = Math.max(0, (24 * 60 * 60 * 1000) - msPassed);
+    if (msLeft <= 0) return null;
+    
+    const h = Math.floor(msLeft / (1000 * 60 * 60));
+    const m = Math.floor((msLeft % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((msLeft % (1000 * 60)) / 1000);
+    
+    return `${h}h ${m}m ${s}s remaining`;
   };
 
   const handleCancel = async (orderId) => {
