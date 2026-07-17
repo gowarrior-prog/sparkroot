@@ -164,13 +164,16 @@ export default function MyOrders() {
 
                     <div className="flex items-center gap-3">
                       {canCancel(order) && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleCancel(order.id); }}
-                          disabled={cancellingId === order.id}
-                          className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 text-[10px] font-bold uppercase tracking-widest rounded-sm hover:bg-red-100 transition disabled:opacity-50"
-                        >
-                          {cancellingId === order.id ? 'Cancelling...' : 'Cancel Order'}
-                        </button>
+                        <div className="flex flex-col items-end gap-1">
+                          {timeLeft && <span className="text-[9px] text-red-500 font-bold tracking-widest uppercase">{timeLeft}</span>}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleCancel(order.id); }}
+                            disabled={cancellingId === order.id}
+                            className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 text-[10px] font-bold uppercase tracking-widest rounded-sm hover:bg-red-100 transition disabled:opacity-50"
+                          >
+                            {cancellingId === order.id ? 'Cancelling...' : 'Cancel Order'}
+                          </button>
+                        </div>
                       )}
                       {isExpanded ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
                     </div>

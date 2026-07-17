@@ -6,12 +6,7 @@ import { useState, useEffect } from 'react';
 import { products } from './dataproducts'; // ← Import real products
 
 export default function Wishlist() {
-  const { addToCart } = useCart();
-
-  const [likedProducts, setLikedProducts] = useState(() => {
-    const saved = localStorage.getItem('luxe-mart-liked');
-    return saved ? JSON.parse(saved) : {};
-  });
+  const { addToCart, likedProducts, toggleLike } = useCart();
 
   // Get only liked products with REAL data
   const likedItems = Object.keys(likedProducts)
@@ -27,16 +22,8 @@ export default function Wishlist() {
       };
     });
 
-  const removeFromWishlist = (id) => {
-    setLikedProducts(prev => {
-      const updated = { ...prev, [id]: false };
-      localStorage.setItem('likedProducts', JSON.stringify(updated));
-      return updated;
-    });
-  };
-
   return (
-    <div className="min-h-screen bg-white text-slate-900 pt-24 pb-20 px-4 md:px-8">
+    <div className="min-h-screen bg-white text-slate-900 pt-36 pb-20 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-12">
           <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight">
@@ -87,7 +74,7 @@ export default function Wishlist() {
                     }}
                   />
                   <button
-                    onClick={() => removeFromWishlist(item.id)}
+                    onClick={() => toggleLike(item.id)}
                     className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition border border-slate-200"
                   >
                     <X size={18} className="text-black" />
