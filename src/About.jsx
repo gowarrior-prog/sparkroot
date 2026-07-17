@@ -1,10 +1,13 @@
 // src/pages/About.jsx
 import { Link } from 'react-router-dom';
 import { Sparkles, Diamond, Heart, ShieldCheck, Truck, Recycle } from 'lucide-react';
+import SEO from './SEO';
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-white text-slate-900 pt-24 pb-20">
+    <>
+      <SEO title="About Us" description="Learn more about SPARKROOT's mission, values, and commitment to quality." />
+      <div className="min-h-screen bg-white text-slate-900 pt-24 pb-20">
       {/* Hero Section */}
       <section className="relative py-20 md:py-32 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-100 via-white to-slate-50" />
@@ -163,5 +166,6 @@ export default function About() {
         </div>
       </section>
     </div>
+    </>
   );
 }

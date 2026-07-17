@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from './CartContext';
 import { ShoppingCart, Package, Heart } from 'lucide-react';
+import SEO from './SEO';
 
 export default function FeaturedProducts() {
   const navigate = useNavigate();

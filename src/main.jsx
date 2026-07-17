@@ -6,12 +6,16 @@ import './index.css'                  // uncomment if you have Tailwind
 import { BrowserRouter } from 'react-router-dom'
 import { CartProvider } from './CartContext.jsx'   // correct – context file
 
+import { HelmetProvider } from 'react-helmet-async';
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <CartProvider>
-        <App />
-      </CartProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   </React.StrictMode>,
 )

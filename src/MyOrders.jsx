@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Package, Clock, CheckCircle, XCircle, Truck, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import SEO from './SEO';
 
 const statusConfig = {
   pending: { label: 'Pending', icon: Clock, color: 'bg-amber-50 text-amber-700 border-amber-200' },
@@ -106,8 +107,10 @@ export default function MyOrders() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pt-24 pb-20 px-4">
-      <div className="max-w-4xl mx-auto">
+    <>
+      <SEO title="My Orders" description="View and manage your recent orders from SPARKROOT." />
+      <div className="min-h-screen bg-slate-50 text-slate-900 pt-24 pb-20 px-4">
+        <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-10">
           <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight">
             My <span className="text-slate-400">Orders</span>
@@ -257,6 +260,8 @@ export default function MyOrders() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+      </div>
+    </>
   );
 }

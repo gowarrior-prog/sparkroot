@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from './CartContext';
 import { ShoppingCart, Heart } from 'lucide-react';
+import SEO from './SEO';
 
 export default function Category() {
   const { name } = useParams();
@@ -48,8 +49,10 @@ export default function Category() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 pt-24 pb-20 px-4">
-      <div className="max-w-7xl mx-auto">
+    <>
+      <SEO title={`${displayCategory} Collection`} description={`Explore our exclusive range of ${displayCategory.toLowerCase()} handpicked just for you at SPARKROOT.`} />
+      <div className="min-h-screen bg-white text-slate-900 pt-24 pb-20 px-4">
+        <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-center mb-12">
           <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight">
             <span className="text-slate-400">{displayCategory}</span> Collection
@@ -125,6 +128,7 @@ export default function Category() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

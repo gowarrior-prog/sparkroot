@@ -4,6 +4,7 @@ import { Heart, ShoppingCart, X } from 'lucide-react';
 import { useCart } from './CartContext'; // adjust path
 import { useState, useEffect } from 'react';
 import { products } from './dataproducts'; // ← Import real products
+import SEO from './SEO';
 
 export default function Wishlist() {
   const { addToCart, likedProducts, toggleLike } = useCart();
@@ -23,8 +24,10 @@ export default function Wishlist() {
     });
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 pt-36 pb-20 px-4 md:px-8">
-      <div className="max-w-7xl mx-auto">
+    <>
+      <SEO title="My Wishlist" description="View and manage your favorite SPARKROOT products in your wishlist." />
+      <div className="min-h-screen bg-white text-slate-900 pt-36 pb-20 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-12">
           <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight">
             My Wishlist <Heart className="inline text-black fill-black" size={36} />
@@ -106,6 +109,7 @@ export default function Wishlist() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
