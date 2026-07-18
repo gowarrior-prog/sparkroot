@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from './CartContext';
 import { ShoppingCart, Heart } from 'lucide-react';
 import SEO from './SEO';
+import { API } from './api';
 
 export default function Category() {
   const { name } = useParams();
@@ -22,7 +23,7 @@ export default function Category() {
     const fetchCategory = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost:5000/api/products?category=${encodeURIComponent(name)}`);
+        const res = await fetch(`${API}/products?category=${encodeURIComponent(name)}`);
         if (res.ok) {
           const data = await res.json();
           setProducts(data);

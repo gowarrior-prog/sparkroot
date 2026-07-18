@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useCart } from './CartContext'; // adjust path
 import { CreditCard, Truck, ShoppingBag, Info } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { API } from './api';
 
 export default function Checkout() {
   const { cartItems, cartCount, removeItem } = useCart();
@@ -44,7 +45,7 @@ export default function Checkout() {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/orders', {
+      const res = await fetch(`${API}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({

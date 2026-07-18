@@ -4,8 +4,7 @@ import {
   LayoutDashboard, Package, Users, ShoppingBag, Plus, Trash2, Edit3, 
   Save, X, TrendingUp, DollarSign, UserCheck, Clock, Shield, Star, LogOut
 } from 'lucide-react';
-
-const API = 'http://localhost:5000/api';
+import { API } from './api';
 
 export default function Admin() {
   const navigate = useNavigate();

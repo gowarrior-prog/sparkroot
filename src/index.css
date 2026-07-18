@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 /* Slide-up animation for bottom bar */
 @keyframes slide-up {
   from {

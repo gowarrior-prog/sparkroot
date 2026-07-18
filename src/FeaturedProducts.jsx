@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from './CartContext';
 import { ShoppingCart, Package, Heart } from 'lucide-react';
 import SEO from './SEO';
+import { API } from './api';
 
 export default function FeaturedProducts() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export default function FeaturedProducts() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/products');
+      const res = await fetch(`${API}/products`);
       if (res.ok) {
         const data = await res.json();
         // Show only featured products, or all if none are featured (up to 8)

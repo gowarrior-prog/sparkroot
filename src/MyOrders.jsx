@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Package, Clock, CheckCircle, XCircle, Truck, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import SEO from './SEO';
+import { API } from './api';
 
 const statusConfig = {
   pending: { label: 'Pending', icon: Clock, color: 'bg-amber-50 text-amber-700 border-amber-200' },
@@ -38,7 +39,7 @@ export default function MyOrders() {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/my-orders', {
+      const res = await fetch(`${API}/my-orders`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -74,7 +75,7 @@ export default function MyOrders() {
     if (!window.confirm('Are you sure you want to cancel this order?')) return;
     setCancellingId(orderId);
     try {
-      const res = await fetch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
+      const res = await fetch(`${API}/orders/${orderId}/cancel`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });

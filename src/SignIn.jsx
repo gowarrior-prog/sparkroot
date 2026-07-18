@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { API } from './api';
 
 const SignIn = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -18,7 +19,7 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/login', {
+      const res = await fetch(`${API}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

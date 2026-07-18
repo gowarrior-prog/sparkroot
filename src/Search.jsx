@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useCart } from './CartContext';
 import { ShoppingCart, Heart } from 'lucide-react';
+import { API } from './api';
 
 export default function Search() {
   const [searchParams] = useSearchParams();
@@ -16,7 +17,7 @@ export default function Search() {
     const fetchSearch = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost:5000/api/products?search=${encodeURIComponent(query)}`);
+        const res = await fetch(`${API}/products?search=${encodeURIComponent(query)}`);
         if (res.ok) {
           const data = await res.json();
           setProducts(data);

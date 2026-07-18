@@ -4,6 +4,7 @@ import { Heart, ShoppingCart, X } from 'lucide-react';
 import { useCart } from './CartContext';
 import { useState, useEffect } from 'react';
 import SEO from './SEO';
+import { API } from './api';
 
 export default function Wishlist() {
   const { addToCart, likedProducts, likedProductsData, toggleLike } = useCart();
@@ -14,7 +15,7 @@ export default function Wishlist() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/products');
+        const res = await fetch(`${API}/products`);
         if (res.ok) {
           const data = await res.json();
           setApiProducts(data);

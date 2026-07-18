@@ -10,7 +10,26 @@ const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey123';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@luxemart.com';
 
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+// ──────────────── CORS CONFIG ────────────────
+// Add allowed frontend origins here, or set ALLOWED_ORIGINS in .env
+// e.g. ALLOWED_ORIGINS=http://localhost:5173,https://sparkroot.vercel.app
+const allowedOrigins = (process.env.ALLOWED_ORIGINS ||
+  'http://localhost:5173,https://sparkroot.vercel.app'
+).split(',').map(o => o.trim());
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // allow requests with no origin (curl, Postman, server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    console.warn('Blocked by CORS:', origin);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
+
 app.use(express.json());
 
 // ──────────────── AUTH MIDDLEWARE ────────────────
@@ -49,7 +68,7 @@ app.post('/api/register', async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const role = email === ADMIN_EMAIL ? 'admin' : 'user';
-    
+
     const newUser = await prisma.user.create({
       data: { name, email, password: hashedPassword, role }
     });
@@ -103,9 +122,9 @@ app.get('/api/products', async (req, res) => {
       whereClause.category = category;
     }
 
-    const products = await prisma.product.findMany({ 
+    const products = await prisma.product.findMany({
       where: whereClause,
-      orderBy: { createdAt: 'desc' } 
+      orderBy: { createdAt: 'desc' }
     });
     res.json(products);
   } catch (error) {
@@ -156,11 +175,11 @@ app.delete('/api/orders/:id/cancel', authenticate, async (req, res) => {
   try {
     const orderId = parseInt(req.params.id);
     const order = await prisma.order.findUnique({ where: { id: orderId } });
-    
+
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
-    
+
     if (order.userId !== req.user.userId) {
       return res.status(403).json({ error: 'Unauthorized to cancel this order' });
     }
