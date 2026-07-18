@@ -480,8 +480,8 @@ export default function Admin() {
                           <tr key={o.id} className="hover:bg-slate-50 transition">
                             <td className="px-6 py-4 text-slate-500 text-xs font-mono font-bold">#{o.id}</td>
                             <td className="px-6 py-4">
-                              <p className="font-bold text-sm text-black">{o.user?.name}</p>
-                              <p className="text-xs text-slate-500 font-medium">{o.user?.email}</p>
+                              <p className="font-bold text-sm text-black">{o.user?.name || 'Guest'}</p>
+                              <p className="text-xs text-slate-500 font-medium">{o.email || o.user?.email}</p>
                             </td>
                             <td className="px-6 py-4">
                               <span className={`px-2 py-1 rounded-sm text-[10px] font-bold uppercase border flex items-center gap-1 w-max tracking-widest ${

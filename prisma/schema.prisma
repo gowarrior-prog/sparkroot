@@ -36,6 +36,7 @@ model Order {
   items     String?
   address   String?
   phone     String?
+  email     String?
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
 }

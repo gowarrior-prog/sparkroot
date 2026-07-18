@@ -152,7 +152,7 @@ app.get('/api/products/:id', async (req, res) => {
 // Place order (any authenticated user)
 app.post('/api/orders', authenticate, async (req, res) => {
   try {
-    const { total, items, address, phone } = req.body;
+    const { total, items, address, phone, email } = req.body;
     const order = await prisma.order.create({
       data: {
         userId: req.user.userId,
@@ -160,6 +160,7 @@ app.post('/api/orders', authenticate, async (req, res) => {
         items: JSON.stringify(items),
         address,
         phone,
+        email,
         status: 'pending'
       }
     });

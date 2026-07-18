@@ -52,7 +52,8 @@ export default function Checkout() {
           total,
           items: cartItems.map(i => ({ name: i.name, quantity: i.quantity, price: i.price })),
           address: `${formData.address}, ${formData.city}`,
-          phone: formData.phone
+          phone: formData.phone,
+          email: formData.email
         })
       });
 
