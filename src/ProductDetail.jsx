@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingCart, ArrowLeft, Star, Truck, RotateCcw, Shield } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Star, Truck, RotateCcw, Shield, Zap } from 'lucide-react';
 import { useCart } from './CartContext';
 import { API } from './api';
+import { products as fallbackProducts } from './dataproducts';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -19,9 +20,14 @@ export default function ProductDetail() {
         if (res.ok) {
           const data = await res.json();
           setProduct(data);
+        } else {
+          const fallback = fallbackProducts.find(p => p.id === parseInt(id));
+          setProduct(fallback || null);
         }
       } catch (err) {
         console.error("Error fetching product:", err);
+        const fallback = fallbackProducts.find(p => p.id === parseInt(id));
+        setProduct(fallback || null);
       } finally {
         setLoading(false);
       }
@@ -57,6 +63,13 @@ export default function ProductDetail() {
     alert('Added to cart!');
   };
 
+  const handleBuyNow = () => {
+    addToCart(product);
+    navigate('/checkout');
+  };
+
+  const isStockAvailable = product.stock === undefined || product.stock > 0;
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pt-24 pb-20 px-4">
       <div className="max-w-6xl mx-auto">
@@ -64,7 +77,7 @@ export default function ProductDetail() {
         {/* Back Button */}
         <button 
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-slate-500 hover:text-black mb-8 transition group font-bold uppercase tracking-widest text-xs"
+          className="flex items-center gap-2 text-slate-500 hover:text-black mb-8 transition group font-bold uppercase tracking-widest text-xs cursor-pointer"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           Back to Shop
@@ -83,7 +96,7 @@ export default function ProductDetail() {
                 e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' fill='%23f1f5f9'%3E%3Crect width='600' height='600'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2394a3b8' font-size='18'%3EImage Unavailable%3C/text%3E%3C/svg%3E";
               }}
             />
-            {product.stock <= 0 && (
+            {!isStockAvailable && (
               <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center">
                 <span className="bg-black text-white font-bold px-6 py-3 rounded-sm uppercase tracking-wider shadow-sm">
                   Out of Stock
@@ -94,13 +107,13 @@ export default function ProductDetail() {
 
           {/* Product Info */}
           <div className="flex flex-col justify-center">
-            <p className="text-slate-400 font-bold tracking-widest uppercase mb-2 text-xs">{product.category}</p>
+            <p className="text-slate-400 font-bold tracking-widest uppercase mb-2 text-xs">{product.category || 'Luxury'}</p>
             <h1 className="text-3xl md:text-5xl font-black mb-4 uppercase tracking-tight text-black">{product.name}</h1>
             
             <div className="flex items-center gap-4 mb-6">
-              <span className="text-3xl font-black text-black">PKR {product.price.toLocaleString()}</span>
+              <span className="text-3xl font-black text-black">PKR {Number(product.price).toLocaleString('en-PK')}</span>
               {product.originalPrice && (
-                <span className="text-xl text-slate-400 line-through font-bold">PKR {product.originalPrice.toLocaleString()}</span>
+                <span className="text-xl text-slate-400 line-through font-bold">PKR {Number(product.originalPrice).toLocaleString('en-PK')}</span>
               )}
             </div>
 
@@ -115,24 +128,41 @@ export default function ProductDetail() {
             </p>
             
             {product.stock > 0 && product.stock <= 5 && (
-              <p className="text-slate-500 mb-4 flex items-center gap-2 font-bold text-sm uppercase tracking-widest">
+              <p className="text-amber-600 mb-4 flex items-center gap-2 font-bold text-sm uppercase tracking-widest">
                 ⚠️ Only {product.stock} items left in stock!
               </p>
             )}
 
-            {/* Add to Cart Button */}
-            <button 
-              className={`py-4 px-8 rounded-none font-bold uppercase tracking-widest flex items-center justify-center gap-3 transition text-sm shadow-sm ${
-                product.stock > 0 
-                  ? 'bg-black text-white hover:bg-slate-800' 
-                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-              }`}
-              onClick={handleAddToCart}
-              disabled={product.stock <= 0}
-            >
-              <ShoppingCart size={20} />
-              {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
-            </button>
+            {/* Action Buttons: BUY NOW on TOP, ADD TO CART BELOW */}
+            <div className="space-y-3">
+              {/* BUY NOW (ABOVE ADD TO CART) */}
+              <button 
+                onClick={handleBuyNow}
+                disabled={!isStockAvailable}
+                className={`w-full py-4 px-8 rounded-none font-extrabold uppercase tracking-widest flex items-center justify-center gap-3 transition text-sm shadow-md cursor-pointer ${
+                  isStockAvailable 
+                    ? 'bg-black text-white hover:bg-slate-800' 
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                }`}
+              >
+                <Zap size={20} />
+                {isStockAvailable ? 'Buy Now' : 'Out of Stock'}
+              </button>
+
+              {/* ADD TO CART (BELOW BUY NOW) */}
+              <button 
+                onClick={handleAddToCart}
+                disabled={!isStockAvailable}
+                className={`w-full py-4 px-8 rounded-none font-bold uppercase tracking-widest flex items-center justify-center gap-3 transition text-sm border-2 border-black cursor-pointer ${
+                  isStockAvailable 
+                    ? 'bg-white text-black hover:bg-slate-100' 
+                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                }`}
+              >
+                <ShoppingCart size={20} />
+                Add to Cart
+              </button>
+            </div>
 
             {/* Extra Info */}
             <div className="mt-10 grid grid-cols-3 gap-4 text-xs font-bold uppercase tracking-widest">

@@ -1,14 +1,15 @@
 // src/pages/Cart.jsx
 import { useCart } from './CartContext';
-import { Trash2, Plus, Minus, ArrowLeft, ShoppingBag } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Trash2, Plus, Minus, ArrowLeft, ShoppingBag, Zap } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Cart() {
   const { cartItems, addToCart, decreaseQuantity, removeItem, cartCount } = useCart();
+  const navigate = useNavigate();
 
-  // Calculate totals
+  // Calculate totals - NO 170 ADDED CHARGES
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const delivery = 170;
+  const delivery = 0;
   const total = subtotal + delivery;
 
   const handleRemoveItem = (id) => {
@@ -67,7 +68,7 @@ export default function Cart() {
                 "
               >
                 {/* Image */}
-                <div className="w-full sm:w-32 h-32 flex-shrink-0">
+                <div className="w-full sm:w-32 h-32 flex-shrink-0 cursor-pointer" onClick={() => navigate(`/product/${item.id}`)}>
                   <img
                     src={item.image}
                     alt={item.name}
@@ -78,7 +79,12 @@ export default function Cart() {
                 {/* Info */}
                 <div className="flex-1">
                   <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-lg font-bold text-black">{item.name}</h3>
+                    <h3 
+                      className="text-lg font-bold text-black cursor-pointer hover:text-slate-600 transition"
+                      onClick={() => navigate(`/product/${item.id}`)}
+                    >
+                      {item.name}
+                    </h3>
                     <button
                       onClick={() => handleRemoveItem(item.id)}
                       className="text-slate-400 hover:text-red-500 transition-colors p-1"
@@ -89,7 +95,7 @@ export default function Cart() {
                   </div>
 
                   <p className="text-black font-black text-xl mb-4">
-                    PKR {item.price.toFixed(0)}
+                    PKR {Number(item.price).toLocaleString('en-PK')}
                   </p>
 
                   {/* Quantity */}
@@ -116,7 +122,7 @@ export default function Cart() {
 
                   {/* Total for this item */}
                   <p className="text-slate-500 font-medium text-sm">
-                    Item Total: <span className="font-black text-black">PKR {(item.price * item.quantity).toFixed(0)}</span>
+                    Item Total: <span className="font-black text-black">PKR {Number(item.price * item.quantity).toLocaleString('en-PK')}</span>
                   </p>
                 </div>
               </div>
@@ -135,24 +141,24 @@ export default function Cart() {
               <div className="space-y-4 mb-8">
                 <div className="flex justify-between text-slate-600 font-medium">
                   <span>Subtotal ({cartCount} items)</span>
-                  <span className="text-black font-bold">PKR {subtotal.toFixed(0)}</span>
+                  <span className="text-black font-bold">PKR {subtotal.toLocaleString('en-PK')}</span>
                 </div>
                 <div className="flex justify-between text-slate-600 font-medium">
                   <span>Delivery Charges</span>
-                  <span className="text-black font-bold">PKR {delivery}</span>
+                  <span className="text-emerald-600 font-bold uppercase">Free</span>
                 </div>
                 <div className="border-t border-slate-200 pt-4 mt-4">
                   <div className="flex justify-between text-xl font-black">
                     <span>Total</span>
-                    <span className="text-black">PKR {total.toFixed(0)}</span>
+                    <span className="text-black">PKR {total.toLocaleString('en-PK')}</span>
                   </div>
                 </div>
               </div>
 
               {/* Delivery Info */}
               <div className="mb-6">
-                <p className="text-xs text-slate-400 text-center font-bold uppercase tracking-widest">
-                  Flat delivery charges: PKR 170
+                <p className="text-xs text-emerald-700 bg-emerald-50 p-2 border border-emerald-200 text-center font-bold uppercase tracking-widest rounded-xs">
+                  ✓ Free Delivery Applied (No extra charges)
                 </p>
               </div>
 
@@ -161,12 +167,12 @@ export default function Cart() {
                 <Link
                   to="/checkout"
                   className="
-                  w-full block text-center py-4 bg-black 
+                  w-full flex items-center justify-center gap-2 py-4 bg-black 
                   text-white font-bold uppercase tracking-widest text-sm
                   hover:bg-slate-800
                   transition-all duration-300 shadow-sm
                 ">
-                  Proceed to Checkout
+                  <Zap size={18} /> Proceed to Checkout
                 </Link>
 
                 <Link

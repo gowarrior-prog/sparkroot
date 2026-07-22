@@ -1,1 +1,6 @@
-<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black' rx='10'/><text x='50%' y='53%' font-family='sans-serif' font-weight='900' font-size='65' fill='white' text-anchor='middle' dominant-baseline='middle'>S</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <g fill="#000000">
+    <path d="M 115 12 L 162 20 L 195 135 L 155 135 L 128 72 L 82 135 L 125 135 L 105 162 L 55 162 L 115 80 L 60 80 L 115 12 Z" />
+    <path d="M 85 188 L 38 180 L 5 65 L 45 65 L 72 128 L 118 65 L 75 65 L 95 38 L 145 38 L 85 120 L 140 120 L 85 188 Z" />
+  </g>
+</svg>

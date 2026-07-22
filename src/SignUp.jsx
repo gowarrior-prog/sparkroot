@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, User } from 'lucide-react';
 import { API } from './api';
+import Logo from './Logo';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
@@ -40,15 +41,18 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-50 pt-20 px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 transform transition-all hover:scale-[1.01] duration-300">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 pt-20 px-4">
+      <div className="max-w-md w-full bg-white rounded-sm border border-slate-200 shadow-md p-8">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-zinc-900 mb-2 font-serif">Create Account</h2>
-          <p className="text-zinc-500">Join Luxe & Co. today</p>
+          <div className="flex justify-center mb-4">
+            <Logo className="h-10" />
+          </div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Create Account</h2>
+          <p className="text-slate-500 text-sm font-medium mt-1">Join SPARKROOT today.</p>
         </div>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6 text-sm text-center">
+          <div className="bg-red-50 text-red-600 p-3 border border-red-200 rounded-sm mb-6 text-xs text-center font-bold">
             {error}
           </div>
         )}
@@ -56,7 +60,7 @@ const SignUp = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 h-5 w-5" />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
               <input
                 type="text"
                 name="name"
@@ -64,12 +68,12 @@ const SignUp = () => {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:border-transparent outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:border-black outline-none transition-all text-sm"
               />
             </div>
             
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 h-5 w-5" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
               <input
                 type="email"
                 name="email"
@@ -77,12 +81,12 @@ const SignUp = () => {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:border-transparent outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:border-black outline-none transition-all text-sm"
               />
             </div>
 
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 h-5 w-5" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
               <input
                 type="password"
                 name="password"
@@ -90,7 +94,7 @@ const SignUp = () => {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:border-transparent outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:border-black outline-none transition-all text-sm"
               />
             </div>
           </div>
@@ -98,16 +102,16 @@ const SignUp = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-zinc-900 text-white py-3 rounded-xl hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 group font-medium"
+            className="w-full bg-black text-white py-4 rounded-sm hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-xs cursor-pointer"
           >
             {loading ? 'Creating Account...' : 'Sign Up'}
-            {!loading && <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />}
+            {!loading && <ArrowRight className="h-4 w-4" />}
           </button>
         </form>
 
-        <p className="mt-8 text-center text-zinc-500">
+        <p className="mt-8 text-center text-slate-500 text-xs font-medium">
           Already have an account?{' '}
-          <Link to="/signin" className="text-zinc-900 font-semibold hover:underline">
+          <Link to="/signin" className="text-black font-bold uppercase tracking-wider hover:underline">
             Sign In
           </Link>
         </p>
