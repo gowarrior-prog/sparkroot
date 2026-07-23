@@ -31,10 +31,18 @@ export default function Category() {
             setProducts(data);
           } else {
             // Fallback matching category or general fallback
-            const filtered = fallbackProducts.filter(p => 
-              p.category?.toLowerCase() === name.toLowerCase() ||
-              p.name.toLowerCase().includes(name.toLowerCase())
-            );
+            const filtered = fallbackProducts.filter(p => {
+              const nameLower = p.name.toLowerCase();
+              const query = name.toLowerCase();
+              
+              // Smart category mapping
+              if (query === 'jewelry') return nameLower.includes('necklace') || nameLower.includes('earring') || nameLower.includes('ring') || nameLower.includes('bracelet') || nameLower.includes('pendant') || nameLower.includes('choker');
+              if (query === 'cosmetics') return nameLower.includes('makeup') || nameLower.includes('lipstick') || nameLower.includes('palette') || nameLower.includes('serum') || nameLower.includes('cream');
+              if (query === 'fashion') return nameLower.includes('dress') || nameLower.includes('coat') || nameLower.includes('blazer') || nameLower.includes('heels') || nameLower.includes('shoes') || nameLower.includes('sandals') || nameLower.includes('pumps') || nameLower.includes('scarf');
+              if (query === 'bags') return nameLower.includes('bag') || nameLower.includes('clutch') || nameLower.includes('tote') || nameLower.includes('wallet') || nameLower.includes('crossbody');
+              
+              return p.category?.toLowerCase() === query || nameLower.includes(query);
+            });
             setProducts(filtered.length > 0 ? filtered : fallbackProducts.slice(0, 12));
           }
         } else {
@@ -105,7 +113,7 @@ export default function Category() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='533' fill='%23f1f5f9'%3E%3Crect width='400' height='533'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2394a3b8' font-size='16'%3EImage Unavailable%3C/text%3E%3C/svg%3E";
+                        e.target.style.display = 'none';
                       }}
                     />
                     

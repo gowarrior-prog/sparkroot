@@ -125,7 +125,7 @@ export default function Wishlist() {
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='533' fill='%23f1f5f9'%3E%3Crect width='400' height='533'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2394a3b8' font-size='16'%3EImage Unavailable%3C/text%3E%3C/svg%3E";
+                        e.target.style.display = 'none';
                       }}
                     />
                     <button

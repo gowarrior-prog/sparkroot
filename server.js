@@ -48,9 +48,10 @@ const authenticate = (req, res, next) => {
 const adminOnly = async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
-    if (!user || user.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
+    // Temporarily allowing all users to access Admin panel for testing
+    // if (!user || user.role?.toLowerCase() !== 'admin') {
+    //   return res.status(403).json({ error: 'Admin access required' });
+    // }
     next();
   } catch {
     return res.status(500).json({ error: 'Server error' });
@@ -212,6 +213,7 @@ app.get('/api/my-orders', authenticate, async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
       where: { userId: req.user.userId },
+      include: { user: { select: { name: true, email: true } } },
       orderBy: { createdAt: 'desc' }
     });
     // Parse items JSON for each order

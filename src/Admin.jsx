@@ -464,26 +464,21 @@ export default function Admin() {
               {activeTab === 'orders' && (
                 <div className="space-y-6">
                   <h3 className="text-sm font-bold uppercase tracking-widest">Order History</h3>
-                  <div className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm">
-                    <table className="w-full text-left">
-                      <thead className="bg-slate-50 border-b border-slate-200">
-                        <tr>
-                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-500">Order ID</th>
-                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-500">Customer</th>
-                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-500">Status</th>
-                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-500">Total Amount</th>
-                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-500">Date</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {orders.map(o => (
-                          <tr key={o.id} className="hover:bg-slate-50 transition">
-                            <td className="px-6 py-4 text-slate-500 text-xs font-mono font-bold">#{o.id}</td>
-                            <td className="px-6 py-4">
-                              <p className="font-bold text-sm text-black">{o.user?.name || 'Guest'}</p>
-                              <p className="text-xs text-slate-500 font-medium">{o.email || o.user?.email}</p>
-                            </td>
-                            <td className="px-6 py-4">
+                  <div className="space-y-4">
+                    {orders.map(o => {
+                      const parsedItems = typeof o.items === 'string' ? (() => { try { return JSON.parse(o.items); } catch { return []; } })() : (Array.isArray(o.items) ? o.items : []);
+                      return (
+                        <div key={o.id} className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm">
+                          {/* Order Header */}
+                          <div className="px-6 py-4 flex flex-wrap items-center justify-between gap-4 border-b border-slate-100">
+                            <div className="flex items-center gap-4">
+                              <span className="text-slate-500 text-xs font-mono font-bold">#{o.id}</span>
+                              <div>
+                                <p className="font-bold text-sm text-black">{o.user?.name || 'Guest'}</p>
+                                <p className="text-xs text-slate-500 font-medium">{o.email || o.user?.email}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4">
                               <span className={`px-2 py-1 rounded-sm text-[10px] font-bold uppercase border flex items-center gap-1 w-max tracking-widest ${
                                 o.status === 'Canceled' ? 'bg-red-50 text-red-600 border-red-200' :
                                 o.status === 'delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
@@ -492,16 +487,60 @@ export default function Admin() {
                               }`}>
                                 {o.status === 'Canceled' ? <Trash2 size={12} /> : <Clock size={12} />} {o.status}
                               </span>
-                            </td>
-                            <td className="px-6 py-4 font-black text-black text-sm">PKR {o.total.toLocaleString()}</td>
-                            <td className="px-6 py-4 text-slate-400 text-xs font-medium">{new Date(o.createdAt).toLocaleDateString()}</td>
-                          </tr>
-                        ))}
-                        {orders.length === 0 && (
-                          <tr><td colSpan="5" className="text-center py-12 text-slate-500 font-medium">No orders placed yet.</td></tr>
-                        )}
-                      </tbody>
-                    </table>
+                              <span className="font-black text-black text-sm">PKR {o.total.toLocaleString()}</span>
+                              <span className="text-slate-400 text-xs font-medium">{new Date(o.createdAt).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+
+                          {/* Delivery Info */}
+                          {(o.address || o.phone) && (
+                            <div className="px-6 py-3 bg-slate-50/50 border-b border-slate-100 flex flex-wrap gap-6">
+                              {o.address && (
+                                <div>
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Address</p>
+                                  <p className="text-sm font-medium text-black">{o.address}</p>
+                                </div>
+                              )}
+                              {o.phone && (
+                                <div>
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Phone</p>
+                                  <p className="text-sm font-medium text-black">{o.phone}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Order Items */}
+                          {parsedItems.length > 0 && (
+                            <div className="px-6 py-3">
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Items ({parsedItems.length})</p>
+                              <div className="space-y-2">
+                                {parsedItems.map((item, idx) => (
+                                  <div key={idx} className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-sm px-3 py-2">
+                                    {item.image && (
+                                      <img
+                                        src={item.image}
+                                        alt={item.name}
+                                        className="w-10 h-10 rounded-sm object-cover border border-slate-200 flex-shrink-0"
+                                        onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }}
+                                      />
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-bold text-black truncate">{item.name}</p>
+                                      <p className="text-xs text-slate-400">Qty: {item.quantity} × PKR {Number(item.price).toLocaleString()}</p>
+                                    </div>
+                                    <p className="text-sm font-black text-black flex-shrink-0">PKR {(item.price * item.quantity).toLocaleString()}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {orders.length === 0 && (
+                      <div className="bg-white border border-slate-200 rounded-md text-center py-12 text-slate-500 font-medium">No orders placed yet.</div>
+                    )}
                   </div>
                 </div>
               )}

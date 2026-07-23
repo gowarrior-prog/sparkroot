@@ -33,11 +33,12 @@ export default function Search() {
           (p.description && p.description.toLowerCase().includes(qLower))
         );
 
-        // Combine unique results by ID or name
+        // Combine unique results by name (handles mixed ID types - numeric local vs UUID API)
         const combinedMap = new Map();
         [...apiResults, ...localMatches].forEach(item => {
-          if (!combinedMap.has(item.id)) {
-            combinedMap.set(item.id, item);
+          const key = item.name ? item.name.toLowerCase().trim() : String(item.id);
+          if (!combinedMap.has(key)) {
+            combinedMap.set(key, item);
           }
         });
 
@@ -46,7 +47,8 @@ export default function Search() {
         console.error("Search error:", err);
         const localMatches = fallbackProducts.filter(p => 
           p.name.toLowerCase().includes(qLower) || 
-          (p.category && p.category.toLowerCase().includes(qLower))
+          (p.category && p.category.toLowerCase().includes(qLower)) ||
+          (p.description && p.description.toLowerCase().includes(qLower))
         );
         setProducts(localMatches);
       } finally {
@@ -57,7 +59,7 @@ export default function Search() {
     if (query) {
       fetchSearch();
     } else {
-      setProducts(fallbackProducts.slice(0, 12));
+      setProducts([]);
       setLoading(false);
     }
   }, [query]);
@@ -84,9 +86,9 @@ export default function Search() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight">
-            Search Results {query ? <>for <span className="text-slate-400">"{query}"</span></> : <span className="text-slate-400">All Products</span>}
+            {query ? <>Search Results for <span className="text-slate-400">"{query}"</span></> : <span className="text-slate-400">Search Products</span>}
           </h1>
-          <p className="text-slate-500 font-medium mt-2">Found {products.length} product(s) matching your request</p>
+          {query && <p className="text-slate-500 font-medium mt-2">Found {products.length} product(s) matching your request</p>}
         </div>
 
         {loading ? (
@@ -117,7 +119,7 @@ export default function Search() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='533' fill='%23f1f5f9'%3E%3Crect width='400' height='533'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2394a3b8' font-size='16'%3EImage Unavailable%3C/text%3E%3C/svg%3E";
+                      e.target.style.display = 'none';
                     }}
                   />
                   

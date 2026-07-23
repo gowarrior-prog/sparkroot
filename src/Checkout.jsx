@@ -48,7 +48,7 @@ export default function Checkout() {
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({
             total,
-            items: cartItems.map(i => ({ name: i.name, quantity: i.quantity, price: i.price })),
+            items: cartItems.map(i => ({ name: i.name, quantity: i.quantity, price: i.price, image: i.image || '' })),
             address: `${formData.address}${formData.city ? `, ${formData.city}` : ''}`,
             phone: formData.phone,
             email: formData.email
