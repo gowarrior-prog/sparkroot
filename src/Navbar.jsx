@@ -1,17 +1,22 @@
 // src/components/Navbar.jsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Heart, ShoppingBag, Menu, X, ChevronDown, Package } from 'lucide-react';
 import { useCart } from './CartContext';
 import Logo from './Logo';
+import { API } from './api';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchTimeout = useRef(null);
+  const allProductsCache = useRef([]);
   const navigate = useNavigate();
 
   // Get both likedCount and cartCount from context
@@ -19,6 +24,21 @@ export default function Navbar() {
 
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
+
+  // Preload all products for instant local search
+  useEffect(() => {
+    fetch(`${API}/products`)
+      .then(r => r.ok ? r.json() : [])
+      .then(data => { allProductsCache.current = data; })
+      .catch(() => {});
+  }, []);
+
+  const getImageUrl = (imgPath) => {
+    if (!imgPath) return '';
+    if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) return imgPath;
+    const baseUrl = API.replace(/\/api\/?$/, '');
+    return `${baseUrl}${imgPath.startsWith('/') ? '' : '/'}${imgPath}`;
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -29,10 +49,45 @@ export default function Navbar() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setShowSuggestions(false);
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
       setIsOpen(false);
     }
+  };
+
+  const handleSearchChange = (val) => {
+    setSearchQuery(val);
+    if (!val.trim()) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    // Instant local filter from cache
+    const q = val.trim().toLowerCase();
+    const localResults = allProductsCache.current
+      .filter(p => p.name?.toLowerCase().includes(q))
+      .slice(0, 5);
+    if (localResults.length > 0) {
+      setSuggestions(localResults);
+      setShowSuggestions(true);
+    }
+
+    // Also do a server call (debounced) to get fresh data
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`${API}/products?search=${encodeURIComponent(q)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSuggestions(data.slice(0, 5));
+          setShowSuggestions(true);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }, 150);
   };
 
   return (
@@ -77,19 +132,44 @@ export default function Navbar() {
             </div>
 
             {/* Actions - Desktop */}
-            <div className="hidden lg:flex items-center gap-6">
-              <form onSubmit={handleSearchSubmit} className={`flex items-center bg-slate-100 rounded-full px-4 py-2 transition-all border border-slate-200 ${isSearchFocused ? 'w-64 ring-2 ring-black bg-white' : 'w-48 hover:bg-slate-200'}`}>
-                <Search size={18} className="text-slate-500 mr-2 shrink-0 cursor-pointer" onClick={handleSearchSubmit} />
-                <input
-                  type="text"
-                  placeholder="Search SPARKROOT..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setIsSearchFocused(false)}
-                  className="bg-transparent border-none outline-none text-black placeholder-slate-400 w-full text-xs font-medium"
-                />
-              </form>
+            <div className="hidden lg:flex items-center gap-6 relative">
+              <div className="relative">
+                <form onSubmit={handleSearchSubmit} className={`flex items-center bg-slate-100 rounded-full px-4 py-2 transition-all border border-slate-200 ${isSearchFocused ? 'w-64 ring-2 ring-black bg-white' : 'w-48 hover:bg-slate-200'}`}>
+                  <Search size={18} className="text-slate-500 mr-2 shrink-0 cursor-pointer" onClick={handleSearchSubmit} />
+                  <input
+                    type="text"
+                    placeholder="Search SPARKROOT..."
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onFocus={() => { setIsSearchFocused(true); if(suggestions.length > 0) setShowSuggestions(true); }}
+                    onBlur={() => { setIsSearchFocused(false); setTimeout(() => setShowSuggestions(false), 200); }}
+                    className="bg-transparent border-none outline-none text-black placeholder-slate-400 w-full text-xs font-medium"
+                  />
+                </form>
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 shadow-xl rounded-md overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                    {suggestions.map(item => (
+                      <div 
+                        key={item.id}
+                        className="flex items-center px-4 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0"
+                        onMouseDown={(e) => { e.preventDefault(); navigate(`/product/${item.id}`); setShowSuggestions(false); setSearchQuery(''); }}
+                      >
+                        <img src={getImageUrl(item.image)} alt={item.name} className="w-10 h-10 object-cover rounded-sm border border-slate-200 mr-3" />
+                        <div>
+                          <p className="text-xs font-bold text-black line-clamp-1">{item.name}</p>
+                          <p className="text-[10px] font-bold text-slate-500 mt-0.5 uppercase tracking-widest">PKR {item.price}</p>
+                        </div>
+                      </div>
+                    ))}
+                    <div 
+                      className="px-4 py-2 bg-slate-50 text-center text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:text-black hover:bg-slate-100 cursor-pointer transition"
+                      onMouseDown={(e) => { e.preventDefault(); handleSearchSubmit(e); }}
+                    >
+                      View all results
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <Link to="/my-orders" className="flex flex-col items-center justify-center text-slate-600 hover:text-black transition relative group">
                 <Package size={22} />
@@ -156,18 +236,44 @@ export default function Navbar() {
               </div>
 
               <div className="pt-4 border-t border-slate-200">
-                <form onSubmit={handleSearchSubmit} className="relative mb-4">
-                  <input
-                    type="text"
-                    placeholder="Search SPARKROOT..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-slate-100 border border-slate-200 text-black placeholder:text-slate-400 rounded-full pl-4 pr-10 py-3 text-xs focus:outline-none focus:border-black font-medium"
-                  />
-                  <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    <Search className="h-4 w-4" />
-                  </button>
-                </form>
+                <div className="relative mb-4">
+                  <form onSubmit={handleSearchSubmit} className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search SPARKROOT..."
+                      value={searchQuery}
+                      onChange={(e) => handleSearchChange(e.target.value)}
+                      onFocus={() => { if(suggestions.length > 0) setShowSuggestions(true); }}
+                      className="w-full bg-slate-100 border border-slate-200 text-black placeholder:text-slate-400 rounded-full pl-4 pr-10 py-3 text-xs focus:outline-none focus:border-black font-medium"
+                    />
+                    <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                      <Search className="h-4 w-4" />
+                    </button>
+                  </form>
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 shadow-xl rounded-lg overflow-hidden z-50">
+                      {suggestions.map(item => (
+                        <div
+                          key={item.id}
+                          className="flex items-center px-4 py-3 hover:bg-slate-50 active:bg-slate-100 cursor-pointer border-b border-slate-100 last:border-0"
+                          onClick={() => { navigate(`/product/${item.id}`); setShowSuggestions(false); setSearchQuery(''); setIsOpen(false); }}
+                        >
+                          <img src={getImageUrl(item.image)} alt={item.name} className="w-10 h-10 object-cover rounded-sm border border-slate-200 mr-3" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-black truncate">{item.name}</p>
+                            <p className="text-[10px] font-bold text-slate-500 mt-0.5 uppercase tracking-widest">PKR {item.price}</p>
+                          </div>
+                        </div>
+                      ))}
+                      <div
+                        className="px-4 py-2.5 bg-slate-50 text-center text-[10px] font-bold uppercase tracking-widest text-slate-600 active:bg-slate-100 cursor-pointer"
+                        onClick={(e) => { handleSearchSubmit(e); }}
+                      >
+                        View all results →
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex justify-around py-4">
                   <Link to="/wishlist" onClick={() => setIsOpen(false)} className="flex flex-col items-center text-slate-600 hover:text-black relative">

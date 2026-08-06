@@ -17,7 +17,7 @@ export default function Admin() {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [productForm, setProductForm] = useState({
-    name: '', price: '', image: '', category: 'jewelry', stock: '0', description: '', featured: false
+    name: '', price: '', image: '', imageFile: null, category: 'jewelry', stock: '0', description: '', featured: false
   });
 
   const token = localStorage.getItem('token');
@@ -62,19 +62,28 @@ export default function Admin() {
     const method = editingProduct ? 'PUT' : 'POST';
     
     try {
+      const formData = new FormData();
+      formData.append('name', productForm.name);
+      formData.append('price', Number(productForm.price));
+      formData.append('category', productForm.category);
+      formData.append('stock', Number(productForm.stock));
+      formData.append('description', productForm.description);
+      formData.append('featured', productForm.featured);
+      if (productForm.image) formData.append('image', productForm.image);
+      if (productForm.imageFile) formData.append('imageFile', productForm.imageFile);
+
+      // Remove Content-Type so browser sets it automatically for FormData
+      const authHeaders = { Authorization: `Bearer ${localStorage.getItem('token')}` };
+
       const res = await fetch(url, {
         method,
-        headers,
-        body: JSON.stringify({
-          ...productForm,
-          price: Number(productForm.price),
-          stock: Number(productForm.stock)
-        })
+        headers: authHeaders,
+        body: formData
       });
       if (res.ok) {
         setShowAddProduct(false);
         setEditingProduct(null);
-        setProductForm({ name: '', price: '', image: '', category: 'jewelry', stock: '0', description: '', featured: false });
+        setProductForm({ name: '', price: '', image: '', imageFile: null, category: 'jewelry', stock: '0', description: '', featured: false });
         fetchData();
       } else {
         const err = await res.json();
@@ -127,9 +136,9 @@ export default function Admin() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col md:flex-row">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-slate-200 bg-white flex flex-col fixed h-full z-40 shadow-sm">
+      <aside className="w-full md:w-64 border-b md:border-r border-slate-200 bg-white flex flex-col relative md:fixed md:h-full z-40 shadow-sm">
         <div className="h-20 flex items-center px-6 border-b border-slate-200">
           <span className="text-2xl font-black tracking-widest flex items-center gap-2 uppercase">
             <span className="bg-black text-white px-2 py-0.5 rounded-sm">S</span> SPARK<span className="text-slate-400">Admin</span>
@@ -154,7 +163,7 @@ export default function Admin() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-64 p-8 overflow-y-auto">
+      <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto overflow-x-hidden">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-10">
@@ -330,8 +339,9 @@ export default function Admin() {
                             <input required type="number" value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-sm px-4 py-3 focus:border-black outline-none transition font-medium" />
                           </div>
                           <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Image URL</label>
-                            <input required type="url" value={productForm.image} onChange={e => setProductForm({...productForm, image: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-sm px-4 py-3 focus:border-black outline-none transition font-medium" />
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Upload Image</label>
+                            <input type="file" accept="image/*" onChange={e => setProductForm({...productForm, imageFile: e.target.files[0]})} className="w-full bg-slate-50 border border-slate-200 rounded-sm px-4 py-2 focus:border-black outline-none transition font-medium file:mr-4 file:py-2 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-bold file:bg-black file:text-white hover:file:bg-slate-800" />
+                            <input type="url" placeholder="Or enter Image URL" value={productForm.image} onChange={e => setProductForm({...productForm, image: e.target.value})} className="w-full mt-2 bg-slate-50 border border-slate-200 rounded-sm px-4 py-3 focus:border-black outline-none transition font-medium text-xs" />
                           </div>
                           <div>
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Category</label>
@@ -366,8 +376,8 @@ export default function Admin() {
                       </form>
                     </div>
                   ) : (
-                    <div className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm">
-                      <table className="w-full text-left">
+                    <div className="bg-white rounded-md border border-slate-200 shadow-sm overflow-x-auto w-full max-w-full">
+                      <table className="w-full text-left min-w-[800px]">
                         <thead className="bg-slate-50 border-b border-slate-200">
                           <tr>
                             <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-500">Product</th>
@@ -422,8 +432,8 @@ export default function Admin() {
               {activeTab === 'users' && (
                 <div className="space-y-6">
                   <h3 className="text-sm font-bold uppercase tracking-widest">User Management</h3>
-                  <div className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm">
-                    <table className="w-full text-left">
+                  <div className="bg-white rounded-md border border-slate-200 shadow-sm overflow-x-auto w-full max-w-full">
+                    <table className="w-full text-left min-w-[600px]">
                       <thead className="bg-slate-50 border-b border-slate-200">
                         <tr>
                           <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-500">Name</th>
@@ -481,6 +491,7 @@ export default function Admin() {
                             <div className="flex items-center gap-4">
                               <span className={`px-2 py-1 rounded-sm text-[10px] font-bold uppercase border flex items-center gap-1 w-max tracking-widest ${
                                 o.status === 'Canceled' ? 'bg-red-50 text-red-600 border-red-200' :
+                                o.status === 'confirmed' ? 'bg-indigo-50 text-indigo-600 border-indigo-200' :
                                 o.status === 'delivered' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
                                 o.status === 'shipped' ? 'bg-blue-50 text-blue-600 border-blue-200' :
                                 'bg-slate-100 text-slate-600 border-slate-200'
@@ -489,6 +500,20 @@ export default function Admin() {
                               </span>
                               <span className="font-black text-black text-sm">PKR {o.total.toLocaleString()}</span>
                               <span className="text-slate-400 text-xs font-medium">{new Date(o.createdAt).toLocaleDateString()}</span>
+                              
+                              {o.status === 'pending' && (
+                                <button 
+                                  onClick={async () => {
+                                    if(confirm('Confirm this order?')) {
+                                      await fetch(`${API}/admin/orders/${o.id}`, { method: 'PATCH', headers, body: JSON.stringify({ status: 'confirmed' }) });
+                                      fetchData();
+                                    }
+                                  }}
+                                  className="ml-2 bg-black hover:bg-slate-800 text-white px-3 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-widest transition"
+                                >
+                                  Confirm
+                                </button>
+                              )}
                             </div>
                           </div>
 

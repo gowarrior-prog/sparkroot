@@ -7,6 +7,7 @@ import { API } from './api';
 
 const statusConfig = {
   pending: { label: 'Pending', icon: Clock, color: 'bg-amber-50 text-amber-700 border-amber-200' },
+  confirmed: { label: 'Confirmed', icon: CheckCircle, color: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
   processing: { label: 'Processing', icon: Package, color: 'bg-blue-50 text-blue-700 border-blue-200' },
   shipped: { label: 'Shipped', icon: Truck, color: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
   delivered: { label: 'Delivered', icon: CheckCircle, color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
@@ -17,8 +18,6 @@ export default function MyOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState(null);
-  const [cancellingId, setCancellingId] = useState(null);
-  const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
 
   const token = localStorage.getItem('token');
@@ -29,12 +28,6 @@ export default function MyOrders() {
       return;
     }
     fetchOrders();
-
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
   }, [token, navigate]);
 
   const fetchOrders = async () => {
@@ -62,46 +55,8 @@ export default function MyOrders() {
     return `${baseUrl}${imgPath.startsWith('/') ? '' : '/'}${imgPath}`;
   };
 
-  const canCancel = (order) => {
-    if (order.status === 'Canceled' || order.status === 'delivered' || order.status === 'shipped') return false;
-    const hoursPassed = (currentTime - new Date(order.createdAt)) / (1000 * 60 * 60);
-    return hoursPassed <= 24;
-  };
 
-  const getTimeRemaining = (order) => {
-    const msPassed = currentTime - new Date(order.createdAt);
-    const msLeft = Math.max(0, (24 * 60 * 60 * 1000) - msPassed);
-    if (msLeft <= 0) return null;
-    
-    const h = Math.floor(msLeft / (1000 * 60 * 60));
-    const m = Math.floor((msLeft % (1000 * 60 * 60)) / (1000 * 60));
-    const s = Math.floor((msLeft % (1000 * 60)) / 1000);
-    
-    return `${h}h ${m}m ${s}s remaining`;
-  };
-
-  const handleCancel = async (orderId) => {
-    if (!window.confirm('Are you sure you want to cancel this order?')) return;
-    setCancellingId(orderId);
-    try {
-      const res = await fetch(`${API}/orders/${orderId}/cancel`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        fetchOrders();
-      } else {
-        const data = await res.json();
-        alert(data.error || 'Failed to cancel order');
-      }
-    } catch (err) {
-      alert('Server error');
-    } finally {
-      setCancellingId(null);
-    }
-  };
-
-  const statusSteps = ['pending', 'processing', 'shipped', 'delivered'];
+  const statusSteps = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];
   const getStepIndex = (status) => {
     if (status === 'Canceled') return -1;
     return statusSteps.indexOf(status);
@@ -147,7 +102,6 @@ export default function MyOrders() {
                 const StatusIcon = config.icon;
                 const isExpanded = expandedOrder === order.id;
                 const stepIdx = getStepIndex(order.status);
-                const timeLeft = getTimeRemaining(order);
 
                 return (
                   <div key={order.id} className="bg-white border border-slate-200 rounded-sm shadow-sm overflow-hidden transition-all hover:border-slate-300">
@@ -188,19 +142,34 @@ export default function MyOrders() {
                           </p>
                         </div>
                       </div>
-
                       <div className="flex items-center gap-3">
-                        {canCancel(order) && (
-                          <div className="flex flex-col items-end gap-1">
-                            {timeLeft && <span className="text-[9px] text-red-500 font-bold tracking-widest uppercase">{timeLeft}</span>}
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleCancel(order.id); }}
-                              disabled={cancellingId === order.id}
-                              className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 text-[10px] font-bold uppercase tracking-widest rounded-sm hover:bg-red-100 transition disabled:opacity-50"
-                            >
-                              {cancellingId === order.id ? 'Cancelling...' : 'Cancel Order'}
-                            </button>
-                          </div>
+                        {order.status === 'pending' && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (window.confirm('Are you sure you want to cancel and delete this order?')) {
+                                try {
+                                  const res = await fetch(`${API}/orders/${order.id}`, {
+                                    method: 'DELETE',
+                                    headers: { Authorization: `Bearer ${token}` }
+                                  });
+                                  if (res.ok) {
+                                    alert('Order deleted successfully!');
+                                    fetchOrders();
+                                  } else {
+                                    const errData = await res.json();
+                                    alert(errData.error || 'Failed to delete order');
+                                  }
+                                } catch (err) {
+                                  console.error(err);
+                                  alert('Failed to delete order due to server error');
+                                }
+                              }
+                            }}
+                            className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-widest transition mr-2"
+                          >
+                            Delete
+                          </button>
                         )}
                         {isExpanded ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
                       </div>

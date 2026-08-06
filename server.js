@@ -3,16 +3,37 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { prisma } from './lib/prisma.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey123';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@luxemart.com';
 
+// ──────────────── STORAGE & UPLOADS ────────────────
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const dir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+    cb(null, dir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage: storage });
+
 // ──────────────── CORS CONFIG ────────────────
-// Add allowed frontend origins here, or set ALLOWED_ORIGINS in .env
-// e.g. ALLOWED_ORIGINS=http://localhost:5173,https://sparkroot.vercel.app
 const allowedOrigins = (process.env.ALLOWED_ORIGINS ||
   'http://localhost:5173,https://sparkroot.vercel.app'
 ).split(',').map(o => o.trim());
@@ -127,7 +148,21 @@ app.get('/api/products', async (req, res) => {
       where: whereClause,
       orderBy: { createdAt: 'desc' }
     });
-    res.json(products);
+    
+    // Fallback: If DB category case is different, filter manually if needed, but simple exact match is best.
+    let finalProducts = products;
+    if (category && products.length === 0) {
+       // manual case-insensitive fallback if exact match fails
+       const allProducts = await prisma.product.findMany({
+         where: search ? { name: { contains: search } } : {},
+         orderBy: { createdAt: 'desc' }
+       });
+       finalProducts = allProducts.filter(p => p.category?.toLowerCase() === category.toLowerCase());
+    } else {
+       finalProducts = products;
+    }
+
+    res.json(finalProducts);
   } catch (error) {
     console.error('Products error:', error);
     res.status(500).json({ error: 'Server error' });
@@ -154,6 +189,21 @@ app.get('/api/products/:id', async (req, res) => {
 app.post('/api/orders', authenticate, async (req, res) => {
   try {
     const { total, items, address, phone, email } = req.body;
+    
+    // Check stock and decrement
+    for (const item of items) {
+      if (item.id) {
+        const product = await prisma.product.findUnique({ where: { id: item.id } });
+        if (!product || product.stock < item.quantity) {
+          return res.status(400).json({ error: `Not enough stock for ${item.name}` });
+        }
+        await prisma.product.update({
+          where: { id: item.id },
+          data: { stock: { decrement: item.quantity } }
+        });
+      }
+    }
+
     const order = await prisma.order.create({
       data: {
         userId: req.user.userId,
@@ -168,42 +218,6 @@ app.post('/api/orders', authenticate, async (req, res) => {
     res.status(201).json({ message: 'Order placed successfully', order });
   } catch (error) {
     console.error('Order error:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Cancel Order (User only within 24 hours)
-app.delete('/api/orders/:id/cancel', authenticate, async (req, res) => {
-  try {
-    const orderId = parseInt(req.params.id);
-    const order = await prisma.order.findUnique({ where: { id: orderId } });
-
-    if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
-
-    if (order.userId !== req.user.userId) {
-      return res.status(403).json({ error: 'Unauthorized to cancel this order' });
-    }
-
-    // Check if 24 hours have passed
-    const now = new Date();
-    const orderTime = new Date(order.createdAt);
-    const hoursPassed = (now - orderTime) / (1000 * 60 * 60);
-
-    if (hoursPassed > 24) {
-      return res.status(400).json({ error: 'Order cannot be canceled after 24 hours.' });
-    }
-
-    // Cancel order (Update status or delete, let's update status)
-    const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
-      data: { status: 'Canceled' }
-    });
-
-    res.json({ message: 'Order canceled successfully', order: updatedOrder });
-  } catch (error) {
-    console.error('Cancel order error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -227,6 +241,55 @@ app.get('/api/my-orders', authenticate, async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+// Delete/Cancel pending order (customer)
+app.delete('/api/orders/:id', authenticate, async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.id);
+    const order = await prisma.order.findUnique({
+      where: { id: orderId }
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Ensure the order belongs to the user and is pending
+    if (order.userId !== req.user.userId) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    if (order.status !== 'pending') {
+      return res.status(400).json({ error: 'Only pending orders can be deleted' });
+    }
+
+    // Restore stock
+    const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        if (item.id) {
+          const product = await prisma.product.findUnique({ where: { id: item.id } });
+          if (product) {
+            await prisma.product.update({
+              where: { id: item.id },
+              data: { stock: { increment: item.quantity } }
+            });
+          }
+        }
+      }
+    }
+
+    await prisma.order.delete({
+      where: { id: orderId }
+    });
+
+    res.json({ message: 'Order deleted successfully' });
+  } catch (error) {
+    console.error('Delete order error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 // ──────────────── ADMIN ROUTES ────────────────
 
@@ -285,31 +348,69 @@ app.get('/api/admin/products', authenticate, adminOnly, async (req, res) => {
 });
 
 // Add product
-app.post('/api/admin/products', authenticate, adminOnly, async (req, res) => {
+app.post('/api/admin/products', authenticate, adminOnly, upload.single('imageFile'), async (req, res) => {
   try {
-    const { name, price, image, category, stock, description, featured } = req.body;
+    const { name, price, category, stock, description, featured } = req.body;
+    
+    if (!name || !price || !category) {
+      return res.status(400).json({ error: 'Name, price, and category are required' });
+    }
+
+    // Use uploaded file URL or fallback to string image field if provided
+    let imageUrl = req.body.image || '';
+    if (req.file) {
+      imageUrl = `/uploads/${req.file.filename}`;
+    }
+
     const product = await prisma.product.create({
-      data: { name, price: parseFloat(price), image, category, stock: parseInt(stock) || 0, description, featured: featured || false }
+      data: { 
+        name, 
+        price: parseFloat(price) || 0, 
+        image: imageUrl, 
+        category, 
+        stock: parseInt(stock) || 0, 
+        description: description || '', 
+        featured: featured === 'true' || featured === true 
+      }
     });
     res.status(201).json(product);
   } catch (error) {
     console.error('Add product error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: error.message || 'Server error' });
   }
 });
 
 // Update product
-app.put('/api/admin/products/:id', authenticate, adminOnly, async (req, res) => {
+// Update product
+app.put('/api/admin/products/:id', authenticate, adminOnly, upload.single('imageFile'), async (req, res) => {
   try {
-    const { name, price, image, category, stock, description, featured } = req.body;
+    const { name, price, category, stock, description, featured } = req.body;
+    
+    let imageUrl = req.body.image;
+    if (req.file) {
+      imageUrl = `/uploads/${req.file.filename}`;
+    }
+
+    const dataToUpdate = { 
+      name, 
+      price: parseFloat(price), 
+      category, 
+      stock: parseInt(stock), 
+      description, 
+      featured: featured === 'true' || featured === true 
+    };
+    if (imageUrl) {
+      dataToUpdate.image = imageUrl;
+    }
+
     const product = await prisma.product.update({
       where: { id: req.params.id },
-      data: { name, price: parseFloat(price), image, category, stock: parseInt(stock), description, featured }
+      data: dataToUpdate
     });
     res.json(product);
   } catch (error) {
     console.error('Update product error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: error.message || 'Server error' });
   }
 });
 
@@ -367,6 +468,32 @@ app.get('/api/admin/stats', authenticate, adminOnly, async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+// Ensure Admin User exists on startup
+async function ensureAdminUser() {
+  try {
+    const email = 'admin@sparkroot.com';
+    const password = 'admiN_#unLoCk_*pass';
+    const name = 'Admin';
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const existingAdmin = await prisma.user.findUnique({ where: { email } });
+    if (existingAdmin) {
+      await prisma.user.update({
+        where: { email },
+        data: { password: hashedPassword, role: 'admin' }
+      });
+      console.log('Admin password updated successfully.');
+    } else {
+      await prisma.user.create({
+        data: { name, email, password: hashedPassword, role: 'admin' }
+      });
+      console.log('Admin user created successfully.');
+    }
+  } catch (err) {
+    console.error('Error seeding admin user:', err);
+  }
+}
+ensureAdminUser();
 
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

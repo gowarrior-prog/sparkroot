@@ -99,11 +99,11 @@ export default function Category() {
               <p className="text-xl text-slate-500 font-medium">No products available in this category right now.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-6 gap-y-8 sm:gap-y-12">
               {products.map((product) => (
                 <div 
                   key={product.id} 
-                  className="group cursor-pointer flex flex-col bg-white border border-slate-100 p-3 rounded-md shadow-xs hover:shadow-md transition-all duration-300"
+                  className="group cursor-pointer flex flex-col bg-white border border-slate-100 p-2 sm:p-3 rounded-md shadow-xs hover:shadow-md transition-all duration-300"
                   onClick={() => navigate(`/product/${product.id}`)}
                 >
                   <div className="relative aspect-[3/4] overflow-hidden bg-slate-50 border border-slate-200 mb-3 rounded-sm">

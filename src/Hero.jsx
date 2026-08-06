@@ -33,17 +33,6 @@ export default function Hero() {
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center gap-6 md:gap-8 w-full max-w-lg">
-            <button
-              onClick={handleScrollToProducts}
-              className="
-                flex-1 inline-flex items-center justify-center 
-                px-10 py-5 text-sm font-bold tracking-widest uppercase
-                text-white bg-black hover:bg-slate-800
-                transition-all duration-300 shadow-md cursor-pointer
-              "
-            >
-              Shop Now
-            </button>
 
             <button
               onClick={handleScrollToProducts}
