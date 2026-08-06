@@ -18,20 +18,30 @@ const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey123';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@luxemart.com';
 
 // ──────────────── STORAGE & UPLOADS ────────────────
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const isVercel = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const dir = path.join(__dirname, 'uploads');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-    cb(null, dir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
-const upload = multer({ storage: storage });
+if (!isVercel) {
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+}
+
+let upload;
+if (isVercel) {
+  // On Vercel, use memory storage (no persistent disk)
+  upload = multer({ storage: multer.memoryStorage() });
+} else {
+  const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      const dir = path.join(__dirname, 'uploads');
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+      cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+  upload = multer({ storage: storage });
+}
 
 // ──────────────── CORS CONFIG ────────────────
 const allowedOrigins = (process.env.ALLOWED_ORIGINS ||
@@ -42,7 +52,12 @@ app.use(cors({
   origin: (origin, callback) => {
     // allow requests with no origin (curl, Postman, server-to-server)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+    // Allow all vercel.app domains, localhost, and custom domains
+    if (
+      origin.includes('vercel.app') ||
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1')
+    ) {
       return callback(null, true);
     }
     console.warn('Blocked by CORS:', origin);
