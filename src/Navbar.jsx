@@ -99,7 +99,7 @@ export default function Navbar() {
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link to="/" className="flex items-center">
-                <Logo className="h-8 md:h-10" />
+                <Logo className="h-16 md:h-[72px]" />
               </Link>
             </div>
 

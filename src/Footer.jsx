@@ -18,7 +18,7 @@ const Footer = () => {
           {/* Brand & Description */}
           <div className="space-y-6">
             <Link to="/" className="inline-block">
-              <Logo variant="light" className="h-8" />
+              <Logo variant="light" className="h-16" />
             </Link>
             <p className="text-zinc-400 leading-relaxed text-xs font-medium">
               Discover a world of premium products, curated for the modern lifestyle. Quality, elegance, and sophistication in every item.

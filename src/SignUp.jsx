@@ -47,7 +47,7 @@ const SignUp = () => {
       <div className="max-w-md w-full bg-white rounded-sm border border-slate-200 shadow-md p-8">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <Logo className="h-10" />
+            <Logo className="h-28 md:h-32" />
           </div>
           <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Create Account</h2>
           <p className="text-slate-500 text-sm font-medium mt-1">Join SPARKROOT today.</p>

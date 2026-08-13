@@ -24,8 +24,8 @@ export default function Hero() {
         <div className="max-w-4xl mx-auto flex flex-col items-center">
           
           {/* Main Logo Branding */}
-          <div className="mb-6 flex justify-center">
-            <Logo className="h-16 sm:h-20 md:h-28" textClass="text-4xl sm:text-6xl md:text-7xl" />
+          <div className="mb-6 flex justify-center w-full max-w-sm">
+            <Logo className="w-full h-auto max-h-48 md:max-h-64" />
           </div>
 
           <p className="text-xl md:text-3xl text-slate-600 font-medium mb-10 md:mb-12 leading-relaxed tracking-tight">
