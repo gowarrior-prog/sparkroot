@@ -31,7 +31,9 @@ const SignUp = () => {
 
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/');
+      const queryParams = new URLSearchParams(window.location.search);
+      const redirect = queryParams.get('redirect') || '/';
+      navigate(redirect);
       window.location.reload();
     } catch (err) {
       setError(err.message);

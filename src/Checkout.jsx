@@ -1,5 +1,5 @@
 // src/pages/Checkout.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from './CartContext';
 import { CreditCard, Truck, ShoppingBag, Info, CheckCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -8,6 +8,15 @@ import { API } from './api';
 export default function Checkout() {
   const { cartItems, cartCount, removeItem } = useCart();
   const navigate = useNavigate();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please login or sign up first to buy products!');
+      navigate('/signin?redirect=/checkout');
+    }
+  }, [navigate]);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -60,18 +69,16 @@ export default function Checkout() {
           alert('Order placed successfully!');
           navigate('/my-orders');
           return;
+        } else {
+          const errorData = await res.json();
+          throw new Error(errorData.error || 'Failed to place order');
         }
+      } else {
+        throw new Error('You must be logged in to place an order.');
       }
-      
-      // Guest fallback order confirmation
-      cartItems.forEach(item => removeItem(item.id));
-      alert('Thank you! Your order has been placed successfully.');
-      navigate('/');
     } catch (err) {
       console.error(err);
-      cartItems.forEach(item => removeItem(item.id));
-      alert('Order placed successfully!');
-      navigate('/');
+      alert(err.message || 'Error placing order. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
