@@ -374,7 +374,14 @@ app.post('/api/admin/products', authenticate, adminOnly, upload.single('imageFil
     // Use uploaded file URL or fallback to string image field if provided
     let imageUrl = req.body.image || '';
     if (req.file) {
-      imageUrl = `/uploads/${req.file.filename}`;
+      if (req.file.buffer) {
+        // Vercel / memoryStorage: Convert buffer to base64 Data URI
+        const base64 = req.file.buffer.toString('base64');
+        imageUrl = `data:${req.file.mimetype};base64,${base64}`;
+      } else if (req.file.filename) {
+        // Local / diskStorage
+        imageUrl = `/uploads/${req.file.filename}`;
+      }
     }
 
     const product = await prisma.product.create({
@@ -403,7 +410,14 @@ app.put('/api/admin/products/:id', authenticate, adminOnly, upload.single('image
     
     let imageUrl = req.body.image;
     if (req.file) {
-      imageUrl = `/uploads/${req.file.filename}`;
+      if (req.file.buffer) {
+        // Vercel / memoryStorage: Convert buffer to base64 Data URI
+        const base64 = req.file.buffer.toString('base64');
+        imageUrl = `data:${req.file.mimetype};base64,${base64}`;
+      } else if (req.file.filename) {
+        // Local / diskStorage
+        imageUrl = `/uploads/${req.file.filename}`;
+      }
     }
 
     const dataToUpdate = { 
