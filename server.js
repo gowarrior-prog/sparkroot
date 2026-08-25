@@ -81,6 +81,8 @@ if (!process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
+  // Keep process alive in all environments
+  setInterval(() => {}, 1000 * 60 * 60);
 }
 
 export default app;
