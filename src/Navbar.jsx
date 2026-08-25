@@ -6,6 +6,7 @@ import { Menu, X, ChevronDown } from 'lucide-react';
 import { useCart } from './CartContext';
 import Logo from './Logo';
 import { API } from './api';
+import { getCachedProducts } from './productStore';
 import NavDesktopActions from './components/navbar/NavDesktopActions';
 import NavMobileMenu from './components/navbar/NavMobileMenu';
 
@@ -16,7 +17,6 @@ export default function Navbar() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const searchTimeout = useRef(null);
   const allProductsCache = useRef([]);
   const navigate = useNavigate();
 
@@ -25,10 +25,9 @@ export default function Navbar() {
   const user = userStr ? JSON.parse(userStr) : null;
 
   useEffect(() => {
-    fetch(`${API}/products`)
-      .then(r => (r.ok ? r.json() : []))
-      .then(data => { allProductsCache.current = data; })
-      .catch(() => {});
+    getCachedProducts().then((data) => {
+      if (Array.isArray(data)) allProductsCache.current = data;
+    });
   }, []);
 
   const getImageUrl = (imgPath) => {
@@ -64,26 +63,11 @@ export default function Navbar() {
 
     const q = val.trim().toLowerCase();
     const localResults = allProductsCache.current
-      .filter(p => p.name?.toLowerCase().includes(q))
+      .filter(p => p.name?.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q))
       .slice(0, 5);
-    if (localResults.length > 0) {
-      setSuggestions(localResults);
-      setShowSuggestions(true);
-    }
 
-    if (searchTimeout.current) clearTimeout(searchTimeout.current);
-    searchTimeout.current = setTimeout(async () => {
-      try {
-        const res = await fetch(`${API}/products?search=${encodeURIComponent(q)}`);
-        if (res.ok) {
-          const data = await res.json();
-          setSuggestions(data.slice(0, 5));
-          setShowSuggestions(true);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }, 150);
+    setSuggestions(localResults);
+    setShowSuggestions(localResults.length > 0);
   };
 
   return (
@@ -91,14 +75,12 @@ export default function Navbar() {
       <nav className="w-full z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            {/* Logo */}
             <div className="flex-shrink-0">
               <Link to="/" className="flex items-center">
                 <Logo className="h-16 md:h-[72px]" />
               </Link>
             </div>
 
-            {/* Desktop Navigation Links */}
             <div className="hidden lg:flex lg:items-center lg:gap-10">
               <Link to="/" className="text-slate-800 hover:text-black font-semibold tracking-widest uppercase text-xs transition">
                 Home
@@ -127,7 +109,6 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* Desktop Actions */}
             <NavDesktopActions
               searchQuery={searchQuery}
               handleSearchChange={handleSearchChange}
@@ -145,14 +126,12 @@ export default function Navbar() {
               handleLogout={handleLogout}
             />
 
-            {/* Mobile Hamburger Button */}
             <button className="lg:hidden text-black p-2" onClick={() => setIsOpen(!isOpen)}>
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
         <NavMobileMenu
           isOpen={isOpen}
           setIsOpen={setIsOpen}

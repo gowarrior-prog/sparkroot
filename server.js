@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcrypt';
@@ -18,6 +19,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Enable gzip/deflate response compression for 80%+ faster data transfers
+app.use(compression());
 
 // ──────────────── STATIC FILES ────────────────
 const isVercel = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
@@ -81,7 +85,6 @@ if (!process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
-  // Keep process alive in all environments
   setInterval(() => {}, 1000 * 60 * 60);
 }
 

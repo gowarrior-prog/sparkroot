@@ -2,6 +2,7 @@ import express from 'express';
 import { prisma } from '../lib/prisma.js';
 import { authenticate, adminOnly } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
+import { cache } from '../lib/cache.js';
 
 const router = express.Router();
 
@@ -70,6 +71,8 @@ router.post('/', authenticate, adminOnly, upload.single('imageFile'), async (req
       },
       include: { images: true }
     });
+
+    cache.clearPattern('product');
     res.status(201).json(formatProduct(product));
   } catch (error) {
     console.error('Add product error:', error);
@@ -130,6 +133,8 @@ router.put('/:id', authenticate, adminOnly, upload.single('imageFile'), async (r
       data: dataToUpdate,
       include: { images: true }
     });
+
+    cache.clearPattern('product');
     res.json(formatProduct(product));
   } catch (error) {
     console.error('Update product error:', error);
@@ -141,6 +146,7 @@ router.put('/:id', authenticate, adminOnly, upload.single('imageFile'), async (r
 router.delete('/:id', authenticate, adminOnly, async (req, res) => {
   try {
     await prisma.product.delete({ where: { id: req.params.id } });
+    cache.clearPattern('product');
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
     console.error('Delete product error:', error);

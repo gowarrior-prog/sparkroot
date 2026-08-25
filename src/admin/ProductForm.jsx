@@ -2,8 +2,8 @@ import { Save, X } from 'lucide-react';
 import { API } from '../api';
 import ProductImageUploader from './ProductImageUploader';
 
-// Image compression utility
-export const compressImageFile = (file, maxW = 1200, maxH = 1200, quality = 0.85) =>
+// Image compression utility - Optimized for high speed and sharp quality
+export const compressImageFile = (file, maxW = 800, maxH = 800, quality = 0.75) =>
   new Promise((resolve) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);

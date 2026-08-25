@@ -4,59 +4,58 @@ import { useCart } from './CartContext';
 import { ShoppingCart, Heart, Zap } from 'lucide-react';
 import SEO from './SEO';
 import { API } from './api';
+import { getCachedProducts } from './productStore';
 import { products as fallbackProducts } from './dataproducts';
 
 export default function Category() {
   const { name } = useParams();
   const navigate = useNavigate();
   const { addToCart, toggleLike, likedProducts } = useCart();
-  
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Format category name for display (e.g. "mobile-accessories" -> "Mobile Accessories")
   const displayCategory = name
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 
   useEffect(() => {
+    let isMounted = true;
     const fetchCategory = async () => {
-      setLoading(true);
+      // 1. Try instant filter from cached products
+      const cached = await getCachedProducts();
+      if (isMounted && Array.isArray(cached) && cached.length > 0) {
+        const matched = cached.filter(p => p.category?.toLowerCase() === name.toLowerCase());
+        if (matched.length > 0) {
+          setProducts(matched);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // 2. Fetch from API if not found in local cache
       try {
         const res = await fetch(`${API}/products?category=${encodeURIComponent(name)}`);
-        if (res.ok) {
+        if (res.ok && isMounted) {
           const data = await res.json();
           if (data.length > 0) {
             setProducts(data);
           } else {
-            // Fallback matching category or general fallback
-            const filtered = fallbackProducts.filter(p => {
-              const nameLower = p.name.toLowerCase();
-              const query = name.toLowerCase();
-              
-              // Smart category mapping
-              if (query === 'jewelry') return nameLower.includes('necklace') || nameLower.includes('earring') || nameLower.includes('ring') || nameLower.includes('bracelet') || nameLower.includes('pendant') || nameLower.includes('choker');
-              if (query === 'cosmetics') return nameLower.includes('makeup') || nameLower.includes('lipstick') || nameLower.includes('palette') || nameLower.includes('serum') || nameLower.includes('cream');
-              if (query === 'fashion') return nameLower.includes('dress') || nameLower.includes('coat') || nameLower.includes('blazer') || nameLower.includes('heels') || nameLower.includes('shoes') || nameLower.includes('sandals') || nameLower.includes('pumps') || nameLower.includes('scarf');
-              if (query === 'bags') return nameLower.includes('bag') || nameLower.includes('clutch') || nameLower.includes('tote') || nameLower.includes('wallet') || nameLower.includes('crossbody');
-              
-              return p.category?.toLowerCase() === query || nameLower.includes(query);
-            });
+            const filtered = fallbackProducts.filter(p => p.category?.toLowerCase() === name.toLowerCase());
             setProducts(filtered.length > 0 ? filtered : fallbackProducts.slice(0, 12));
           }
-        } else {
-          setProducts(fallbackProducts.slice(0, 12));
         }
       } catch (err) {
-        console.error("Category fetch error:", err);
-        setProducts(fallbackProducts.slice(0, 12));
+        console.error('Category fetch error:', err);
+        if (isMounted) setProducts(fallbackProducts.slice(0, 12));
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
-    
+
     fetchCategory();
+    return () => { isMounted = false; };
   }, [name]);
 
   const handleAddClick = (e, product) => {
@@ -90,17 +89,17 @@ export default function Category() {
             </p>
           </div>
 
-          {loading ? (
+          {loading && products.length === 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-6 gap-y-8 sm:gap-y-12">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                 <div key={i} className="flex flex-col bg-white border border-slate-200/80 p-3 rounded-xl">
                   <div className="relative aspect-[3/4] bg-slate-200 rounded-lg animate-pulse mb-3 overflow-hidden">
-                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
                   </div>
                   <div className="space-y-2">
-                    <div className="h-4 w-3/4 bg-slate-200 rounded animate-pulse"></div>
-                    <div className="h-5 w-1/2 bg-slate-200 rounded animate-pulse"></div>
-                    <div className="h-9 w-full bg-slate-200 rounded-md animate-pulse mt-2"></div>
+                    <div className="h-4 w-3/4 bg-slate-200 rounded animate-pulse" />
+                    <div className="h-5 w-1/2 bg-slate-200 rounded animate-pulse" />
+                    <div className="h-9 w-full bg-slate-200 rounded-md animate-pulse mt-2" />
                   </div>
                 </div>
               ))}
@@ -112,24 +111,26 @@ export default function Category() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-6 gap-y-8 sm:gap-y-12">
               {products.map((product) => (
-                <div 
-                  key={product.id} 
-                  className="group cursor-pointer flex flex-col bg-white border border-slate-100 p-2 sm:p-3 rounded-md shadow-xs hover:shadow-md transition-all duration-300"
+                <div
+                  key={product.id}
+                  className="group cursor-pointer flex flex-col bg-white border border-slate-100 p-2 sm:p-3 rounded-xl shadow-xs hover:shadow-lg transition-all duration-300"
                   onClick={() => navigate(`/product/${product.id}`)}
                 >
-                  <div className="relative aspect-[3/4] overflow-hidden bg-slate-50 border border-slate-200 mb-3 rounded-sm">
+                  <div className="relative aspect-[3/4] overflow-hidden bg-slate-50 border border-slate-200 mb-3 rounded-lg">
                     <img
                       src={product.image}
                       alt={product.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       onError={(e) => {
                         e.target.onerror = null;
                         e.target.style.display = 'none';
                       }}
                     />
-                    
-                    {/* Heart/Wishlist Button */}
+
                     <button
+                      type="button"
                       onClick={(e) => handleLike(e, product)}
                       className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full border border-slate-200 hover:bg-white transition-all z-10 shadow-sm"
                     >
@@ -153,17 +154,18 @@ export default function Category() {
                       <p className="text-slate-900 font-extrabold text-lg mb-3">PKR {Number(product.price).toLocaleString('en-PK')}</p>
                     </div>
 
-                    {/* Both Buy Now & Add to Cart buttons */}
                     <div className="space-y-2 mt-auto pt-2">
                       <button
+                        type="button"
                         onClick={(e) => handleBuyNow(e, product)}
-                        className="w-full bg-black text-white font-bold py-2.5 px-3 rounded-none flex items-center justify-center gap-2 hover:bg-slate-800 transition uppercase tracking-widest text-xs shadow-xs"
+                        className="w-full bg-black text-white font-bold py-2.5 px-3 rounded-md flex items-center justify-center gap-2 hover:bg-slate-800 transition uppercase tracking-widest text-xs shadow-xs"
                       >
                         <Zap size={15} /> Buy Now
                       </button>
                       <button
+                        type="button"
                         onClick={(e) => handleAddClick(e, product)}
-                        className="w-full bg-slate-100 text-black border border-slate-300 font-bold py-2 px-3 rounded-none flex items-center justify-center gap-2 hover:bg-slate-200 transition uppercase tracking-widest text-xs"
+                        className="w-full bg-slate-100 text-black border border-slate-300 font-bold py-2 px-3 rounded-md flex items-center justify-center gap-2 hover:bg-slate-200 transition uppercase tracking-widest text-xs"
                       >
                         <ShoppingCart size={15} /> Add to Cart
                       </button>

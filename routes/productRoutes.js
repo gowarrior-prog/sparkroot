@@ -1,20 +1,28 @@
 import express from 'express';
 import { prisma } from '../lib/prisma.js';
+import { cache } from '../lib/cache.js';
 
 const router = express.Router();
 
-// Format product images helper
 const formatProduct = (p) => ({
   ...p,
   images: Array.isArray(p.images) ? p.images.map(img => img.url || img) : []
 });
 
-// GET all products (public, with search & category filters)
+// GET all products (cached for fast response)
 router.get('/', async (req, res) => {
   try {
     const { search, category } = req.query;
-    let whereClause = {};
+    const cacheKey = `products_${search || 'all'}_${category || 'all'}`;
+    const cachedData = cache.get(cacheKey);
 
+    if (cachedData) {
+      res.setHeader('X-Cache', 'HIT');
+      res.setHeader('Cache-Control', 'public, max-age=30');
+      return res.json(cachedData);
+    }
+
+    let whereClause = {};
     if (search) whereClause.name = { contains: search, mode: 'insensitive' };
     if (category) whereClause.category = category;
 
@@ -34,7 +42,12 @@ router.get('/', async (req, res) => {
       finalProducts = allProducts.filter(p => p.category?.toLowerCase() === category.toLowerCase());
     }
 
-    res.json(finalProducts.map(formatProduct));
+    const formatted = finalProducts.map(formatProduct);
+    cache.set(cacheKey, formatted, 60); // 60s cache
+
+    res.setHeader('X-Cache', 'MISS');
+    res.setHeader('Cache-Control', 'public, max-age=30');
+    res.json(formatted);
   } catch (error) {
     console.error('Products error:', error);
     res.status(500).json({ error: 'Server error' });
@@ -44,12 +57,26 @@ router.get('/', async (req, res) => {
 // GET single product
 router.get('/:id', async (req, res) => {
   try {
+    const cacheKey = `product_${req.params.id}`;
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      res.setHeader('X-Cache', 'HIT');
+      res.setHeader('Cache-Control', 'public, max-age=60');
+      return res.json(cached);
+    }
+
     const product = await prisma.product.findUnique({
       where: { id: req.params.id },
       include: { images: true }
     });
     if (!product) return res.status(404).json({ error: 'Product not found' });
-    res.json(formatProduct(product));
+
+    const formatted = formatProduct(product);
+    cache.set(cacheKey, formatted, 120);
+
+    res.setHeader('X-Cache', 'MISS');
+    res.setHeader('Cache-Control', 'public, max-age=60');
+    res.json(formatted);
   } catch (error) {
     console.error('Product error:', error);
     res.status(500).json({ error: 'Server error' });
