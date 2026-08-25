@@ -5,13 +5,13 @@ export default function ProductSkeleton() {
         <div className="h-4 w-28 bg-slate-200 rounded animate-pulse mb-8" />
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
           {/* Skeleton Gallery */}
-          <div className="flex flex-row gap-3">
-            <div className="flex flex-col gap-2.5 w-14 sm:w-16 flex-shrink-0">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-slate-200 rounded-lg animate-pulse" />
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-slate-200 rounded-lg animate-pulse" />
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-slate-200 rounded-lg animate-pulse" />
+          <div className="flex flex-row gap-2.5 sm:gap-4 md:sticky md:top-28 w-full">
+            <div className="flex flex-col gap-2 sm:gap-2.5 w-12 sm:w-16 md:w-20 flex-shrink-0">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-slate-200 rounded-lg animate-pulse" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-slate-200 rounded-lg animate-pulse" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-slate-200 rounded-lg animate-pulse" />
             </div>
-            <div className="flex-1 min-h-[320px] sm:min-h-[420px] bg-slate-200 rounded-xl animate-pulse relative overflow-hidden">
+            <div className="flex-1 min-h-[280px] sm:min-h-[400px] md:min-h-[480px] bg-slate-200 rounded-2xl animate-pulse relative overflow-hidden">
               <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
             </div>
           </div>
