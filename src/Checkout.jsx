@@ -1,9 +1,10 @@
-// src/pages/Checkout.jsx
 import { useState, useEffect } from 'react';
 import { useCart } from './CartContext';
-import { CreditCard, Truck, ShoppingBag, Info, CheckCircle } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { API } from './api';
+import ShippingForm from './components/checkout/ShippingForm';
+import OrderSummaryCard from './components/checkout/OrderSummaryCard';
 
 export default function Checkout() {
   const { cartItems, cartCount, removeItem } = useCart();
@@ -18,19 +19,17 @@ export default function Checkout() {
     }
   }, [navigate]);
 
-  // Form states
   const [formData, setFormData] = useState({
     fullName: '',
     address: '',
     city: '',
     phone: '',
-    email: '',
+    email: ''
   });
 
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Calculations - NO 170 ADDED CHARGES
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const delivery = 0;
   const total = subtotal + delivery;
@@ -105,164 +104,26 @@ export default function Checkout() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pt-24 pb-20 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <h1 className="text-4xl md:text-5xl font-black text-center md:text-left mb-12 tracking-tight uppercase">
           CHECKOUT
           <span className="text-slate-500 ml-3 text-2xl font-medium">({cartCount} items)</span>
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          {/* Left - Forms & Payment */}
-          <div className="lg:col-span-2 space-y-10">
-            {/* Notice */}
-            <div className="bg-blue-50 border border-blue-200 p-4 flex gap-3 text-blue-800">
-              <Info className="shrink-0 mt-0.5" size={20} />
-              <p className="text-sm font-medium">
-                <strong>Important:</strong> You have a <span className="underline">24-hour window</span> to cancel your order after placement.
-              </p>
-            </div>
+          <ShippingForm
+            formData={formData}
+            handleChange={handleChange}
+            paymentMethod={paymentMethod}
+            setPaymentMethod={setPaymentMethod}
+          />
 
-            {/* Shipping Address */}
-            <div className="bg-white border border-slate-200 p-8 shadow-sm">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 tracking-tight uppercase">
-                <Truck size={24} className="text-black" /> Shipping Address
-              </h2>
-
-              <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">Full Name *</label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter your full name"
-                    className="w-full p-4 bg-slate-50 border border-slate-200 focus:outline-none focus:border-black transition text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">Phone Number *</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
-                    placeholder="03xx-xxxxxxx"
-                    className="w-full p-4 bg-slate-50 border border-slate-200 focus:outline-none focus:border-black transition text-sm"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">Address *</label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    required
-                    placeholder="Street address, house number, area"
-                    className="w-full p-4 bg-slate-50 border border-slate-200 focus:outline-none focus:border-black transition text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">City</label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    placeholder="City name"
-                    className="w-full p-4 bg-slate-50 border border-slate-200 focus:outline-none focus:border-black transition text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="your@email.com"
-                    className="w-full p-4 bg-slate-50 border border-slate-200 focus:outline-none focus:border-black transition text-sm"
-                  />
-                </div>
-              </form>
-            </div>
-
-            {/* Payment Method */}
-            <div className="bg-white border border-slate-200 p-8 shadow-sm">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 tracking-tight uppercase">
-                <CreditCard size={24} className="text-black" /> Payment Method
-              </h2>
-
-              <div className="space-y-4">
-                <label className="flex items-center gap-3 p-4 bg-slate-50 cursor-pointer hover:bg-slate-100 transition border border-black">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="cod"
-                    checked={paymentMethod === 'cod'}
-                    onChange={() => setPaymentMethod('cod')}
-                    className="w-5 h-5 accent-black"
-                  />
-                  <Truck size={20} className="text-black" />
-                  <span className="font-semibold uppercase tracking-wide text-sm">Cash on Delivery (COD)</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Right - Sticky Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="
-              lg:sticky lg:top-24 
-              bg-white border border-slate-200 
-              p-8 shadow-sm
-            ">
-              <h2 className="text-2xl font-bold mb-8 tracking-tight uppercase">ORDER SUMMARY</h2>
-
-              <div className="space-y-5 mb-8">
-                <div className="flex justify-between text-slate-600 font-medium">
-                  <span>Subtotal ({cartCount} items)</span>
-                  <span className="font-bold text-black">PKR {subtotal.toLocaleString('en-PK')}</span>
-                </div>
-
-                <div className="flex justify-between text-slate-600 font-medium">
-                  <span>Delivery Charges</span>
-                  <span className="text-emerald-600 font-bold uppercase">Free</span>
-                </div>
-
-                <div className="border-t border-slate-200 pt-5 mt-5">
-                  <div className="flex justify-between text-2xl font-black">
-                    <span>TOTAL</span>
-                    <span>PKR {total.toLocaleString('en-PK')}</span>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={handlePlaceOrder}
-                disabled={isSubmitting}
-                className="
-                  w-full py-5 bg-black
-                  text-white font-bold text-sm tracking-widest uppercase
-                  hover:bg-slate-800
-                  transition-all duration-300 shadow-md cursor-pointer disabled:opacity-50
-                "
-              >
-                {isSubmitting ? 'Placing Order...' : 'Place Order'}
-              </button>
-
-              <p className="text-center text-xs text-emerald-700 bg-emerald-50 p-2 mt-4 font-bold uppercase tracking-widest">
-                ✓ Original price only — No extra fees added
-              </p>
-            </div>
-          </div>
+          <OrderSummaryCard
+            cartCount={cartCount}
+            subtotal={subtotal}
+            total={total}
+            handlePlaceOrder={handlePlaceOrder}
+            isSubmitting={isSubmitting}
+          />
         </div>
       </div>
     </div>

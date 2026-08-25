@@ -1,17 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingCart, ArrowLeft, Star, Truck, RotateCcw, Shield, Zap } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useCart } from './CartContext';
 import { API } from './api';
 import { products as fallbackProducts } from './dataproducts';
+import ProductSkeleton from './components/product/ProductSkeleton';
+import ProductGallery from './components/product/ProductGallery';
+import ProductInfo from './components/product/ProductInfo';
 
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
-  
+  const { addToCart, toggleLike, likedProducts } = useCart();
+
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -20,43 +24,64 @@ export default function ProductDetail() {
         if (res.ok) {
           const data = await res.json();
           setProduct(data);
+          setSelectedImage(data.image || null);
         } else {
-          const fallback = fallbackProducts.find(p => p.id === parseInt(id));
+          const fallback = fallbackProducts.find(p => String(p.id) === String(id));
           setProduct(fallback || null);
+          setSelectedImage(fallback?.image || null);
         }
       } catch (err) {
-        console.error("Error fetching product:", err);
-        const fallback = fallbackProducts.find(p => p.id === parseInt(id));
+        console.error('Error fetching product:', err);
+        const fallback = fallbackProducts.find(p => String(p.id) === String(id));
         setProduct(fallback || null);
+        setSelectedImage(fallback?.image || null);
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchProduct();
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+  if (loading) return <ProductSkeleton />;
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-900 pt-24 px-4 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 text-slate-900 pt-24 px-4 flex items-center justify-center animate-fade-in">
         <div className="text-center">
           <h1 className="text-5xl font-black mb-4 uppercase tracking-tight">Product Not Found</h1>
           <p className="text-slate-500 mb-8 font-medium">The product you're looking for doesn't exist.</p>
-          <button onClick={() => navigate('/')} className="px-8 py-3 bg-black rounded-none text-white font-bold uppercase tracking-widest text-sm hover:bg-slate-800 transition">
+          <button
+            onClick={() => navigate('/')}
+            className="px-8 py-3 bg-black text-white font-bold uppercase tracking-widest text-sm hover:bg-slate-800 transition shadow-md cursor-pointer"
+          >
             Go Home
           </button>
         </div>
       </div>
     );
   }
+
+  let extraImages = [];
+  if (Array.isArray(product.images)) {
+    extraImages = product.images.map(img => (typeof img === 'object' && img?.url ? img.url : img)).filter(Boolean);
+  } else if (typeof product.images === 'string') {
+    try {
+      const parsed = JSON.parse(product.images);
+      extraImages = Array.isArray(parsed) ? parsed.map(img => (typeof img === 'object' ? img.url : img)).filter(Boolean) : [product.images];
+    } catch {
+      extraImages = product.images.includes(',') ? product.images.split(',').map(s => s.trim()) : [product.images];
+    }
+  }
+
+  const allImages = product.image
+    ? [product.image, ...extraImages.filter(img => img && img !== product.image)]
+    : extraImages.filter(Boolean);
+
+  const displayImage = selectedImage || product.image || allImages[0] || '';
+  const currentImageIdx = allImages.indexOf(displayImage);
+  const isStockAvailable = product.stock === undefined || product.stock > 0;
+  const isLiked = likedProducts[product.id];
 
   const handleAddToCart = () => {
     addToCart(product);
@@ -68,14 +93,10 @@ export default function ProductDetail() {
     navigate('/checkout');
   };
 
-  const isStockAvailable = product.stock === undefined || product.stock > 0;
-
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pt-24 pb-20 px-4">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pt-24 pb-20 px-4 animate-fade-in">
       <div className="max-w-6xl mx-auto">
-        
-        {/* Back Button */}
-        <button 
+        <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-slate-500 hover:text-black mb-8 transition group font-bold uppercase tracking-widest text-xs cursor-pointer"
         >
@@ -83,106 +104,24 @@ export default function ProductDetail() {
           Back to Shop
         </button>
 
-        <div className="grid md:grid-cols-2 gap-12">
-          
-          {/* Product Image */}
-          <div className="bg-white rounded-sm overflow-hidden border border-slate-200 relative shadow-sm aspect-square md:aspect-auto">
-            <img 
-              src={product.image} 
-              alt={product.name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.style.display = 'none';
-              }}
-            />
-            {!isStockAvailable && (
-              <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center">
-                <span className="bg-black text-white font-bold px-6 py-3 rounded-sm uppercase tracking-wider shadow-sm">
-                  Out of Stock
-                </span>
-              </div>
-            )}
-          </div>
+        <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
+          <ProductGallery
+            allImages={allImages}
+            displayImage={displayImage}
+            setSelectedImage={setSelectedImage}
+            product={product}
+            isLiked={isLiked}
+            toggleLike={toggleLike}
+            isStockAvailable={isStockAvailable}
+            currentImageIdx={currentImageIdx}
+          />
 
-          {/* Product Info */}
-          <div className="flex flex-col justify-center">
-            <p className="text-slate-400 font-bold tracking-widest uppercase mb-2 text-xs">{product.category || 'Luxury'}</p>
-            <h1 className="text-3xl md:text-5xl font-black mb-4 uppercase tracking-tight text-black">{product.name}</h1>
-            
-            <div className="flex items-center gap-4 mb-6">
-              <span className="text-3xl font-black text-black">PKR {Number(product.price).toLocaleString('en-PK')}</span>
-              {product.originalPrice && (
-                <span className="text-xl text-slate-400 line-through font-bold">PKR {Number(product.originalPrice).toLocaleString('en-PK')}</span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2 mb-6">
-              <Star size={18} className="fill-black text-black" />
-              <span className="text-black font-black">4.8</span>
-              <span className="text-slate-500 font-medium">/ 5.0 (24 reviews)</span>
-            </div>
-
-            <p className="text-slate-600 text-lg leading-relaxed mb-8 font-medium">
-              {product.description || "Premium quality product with excellent craftsmanship. Perfect for gifting or personal collection. Made with the finest materials for lasting elegance."}
-            </p>
-            
-            {product.stock > 0 && product.stock <= 5 && (
-              <p className="text-amber-600 mb-4 flex items-center gap-2 font-bold text-sm uppercase tracking-widest">
-                ⚠️ Only {product.stock} items left in stock!
-              </p>
-            )}
-
-            {/* Action Buttons: BUY NOW on TOP, ADD TO CART BELOW */}
-            <div className="space-y-3">
-              {/* BUY NOW (ABOVE ADD TO CART) */}
-              <button 
-                onClick={handleBuyNow}
-                disabled={!isStockAvailable}
-                className={`w-full py-4 px-8 rounded-none font-extrabold uppercase tracking-widest flex items-center justify-center gap-3 transition text-sm shadow-md cursor-pointer ${
-                  isStockAvailable 
-                    ? 'bg-black text-white hover:bg-slate-800' 
-                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                }`}
-              >
-                <Zap size={20} />
-                {isStockAvailable ? 'Buy Now' : 'Out of Stock'}
-              </button>
-
-              {/* ADD TO CART (BELOW BUY NOW) */}
-              <button 
-                onClick={handleAddToCart}
-                disabled={!isStockAvailable}
-                className={`w-full py-4 px-8 rounded-none font-bold uppercase tracking-widest flex items-center justify-center gap-3 transition text-sm border-2 border-black cursor-pointer ${
-                  isStockAvailable 
-                    ? 'bg-white text-black hover:bg-slate-100' 
-                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
-                }`}
-              >
-                <ShoppingCart size={20} />
-                Add to Cart
-              </button>
-            </div>
-
-            {/* Extra Info */}
-            <div className="mt-10 grid grid-cols-3 gap-4 text-xs font-bold uppercase tracking-widest">
-              <div className="bg-white border border-slate-200 rounded-sm p-4 text-center shadow-sm">
-                <Truck size={22} className="mx-auto mb-2 text-black" />
-                <p className="text-slate-400 mb-1">Delivery</p>
-                <p className="text-black">3-5 days</p>
-              </div>
-              <div className="bg-white border border-slate-200 rounded-sm p-4 text-center shadow-sm">
-                <RotateCcw size={22} className="mx-auto mb-2 text-black" />
-                <p className="text-slate-400 mb-1">Returns</p>
-                <p className="text-black">7 days</p>
-              </div>
-              <div className="bg-white border border-slate-200 rounded-sm p-4 text-center shadow-sm">
-                <Shield size={22} className="mx-auto mb-2 text-black" />
-                <p className="text-slate-400 mb-1">Warranty</p>
-                <p className="text-black">1 year</p>
-              </div>
-            </div>
-          </div>
+          <ProductInfo
+            product={product}
+            isStockAvailable={isStockAvailable}
+            handleBuyNow={handleBuyNow}
+            handleAddToCart={handleAddToCart}
+          />
         </div>
       </div>
     </div>

@@ -91,8 +91,19 @@ export default function Category() {
           </div>
 
           {loading ? (
-            <div className="flex justify-center py-20">
-              <div className="w-10 h-10 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-6 gap-y-8 sm:gap-y-12">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <div key={i} className="flex flex-col bg-white border border-slate-200/80 p-3 rounded-xl">
+                  <div className="relative aspect-[3/4] bg-slate-200 rounded-lg animate-pulse mb-3 overflow-hidden">
+                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-4 w-3/4 bg-slate-200 rounded animate-pulse"></div>
+                    <div className="h-5 w-1/2 bg-slate-200 rounded animate-pulse"></div>
+                    <div className="h-9 w-full bg-slate-200 rounded-md animate-pulse mt-2"></div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : products.length === 0 ? (
             <div className="text-center py-20">
