@@ -1,5 +1,80 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-display: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ──────────────── ULTRA-PREMIUM TYPOGRAPHY SYSTEM ──────────────── */
+
+:root {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-sans);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  letter-spacing: -0.012em;
+  color: #0f172a;
+  background-color: #ffffff;
+}
+
+/* Premium text selection */
+::selection {
+  background-color: #0f172a;
+  color: #ffffff;
+}
+
+/* Headings typography hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  text-wrap: balance;
+}
+
+/* Automatically fix cramped uppercase letters across the website */
+.uppercase.tracking-tight {
+  letter-spacing: 0.05em !important;
+}
+
+.uppercase.tracking-tighter {
+  letter-spacing: 0.025em !important;
+}
+
+h1.uppercase, h2.uppercase, h3.uppercase {
+  letter-spacing: 0.05em;
+}
+
+/* Luxury typography utilities */
+.font-editorial {
+  font-family: var(--font-serif);
+}
+
+.tracking-luxury {
+  letter-spacing: 0.18em;
+}
+
+.tracking-subtle {
+  letter-spacing: 0.06em;
+}
+
+/* Tabular numbers for clean prices and badges */
+.price-value, [data-price] {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
 /* ──────────────── MODERN ANIMATIONS & MICRO-INTERACTIONS ──────────────── */
 
 @keyframes fadeIn {

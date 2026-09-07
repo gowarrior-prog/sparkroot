@@ -1,7 +1,9 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { useCart } from './CartContext';
 import { ShoppingBag } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from './lib/routerCompat';
 import { API } from './api';
 import ShippingForm from './components/checkout/ShippingForm';
 import OrderSummaryCard from './components/checkout/OrderSummaryCard';
@@ -56,7 +58,15 @@ export default function Checkout() {
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({
             total,
-            items: cartItems.map(i => ({ id: i.id, name: i.name, quantity: i.quantity, price: i.price, image: i.image || '' })),
+            items: cartItems.map(i => ({
+              id: i.id,
+              name: i.name,
+              quantity: i.quantity,
+              price: i.price,
+              image: i.image || '',
+              size: i.selectedSize || null,
+              color: i.selectedColor || null
+            })),
             address: `${formData.address}${formData.city ? `, ${formData.city}` : ''}`,
             phone: formData.phone,
             email: formData.email
@@ -64,7 +74,7 @@ export default function Checkout() {
         });
 
         if (res.ok) {
-          cartItems.forEach(item => removeItem(item.id));
+          cartItems.forEach(item => removeItem(item.cartKey || item.id));
           alert('Order placed successfully!');
           navigate('/my-orders');
           return;

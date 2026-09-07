@@ -1,5 +1,7 @@
+'use client';
+
 // src/pages/Wishlist.jsx
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from './lib/routerCompat';
 import { Heart, ShoppingCart, X, Zap } from 'lucide-react';
 import { useCart } from './CartContext';
 import { useState, useEffect } from 'react';

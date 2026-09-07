@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from './lib/routerCompat';
 import { Package } from 'lucide-react';
 import SEO from './SEO';
 import { API } from './api';
@@ -12,7 +14,7 @@ export default function MyOrders() {
   const [expandedOrder, setExpandedOrder] = useState(null);
   const navigate = useNavigate();
 
-  const token = localStorage.getItem('token');
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
   useEffect(() => {
     if (!token) {

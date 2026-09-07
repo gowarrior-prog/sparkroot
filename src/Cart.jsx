@@ -1,7 +1,9 @@
+'use client';
+
 // src/pages/Cart.jsx
 import { useCart } from './CartContext';
 import { Trash2, Plus, Minus, ArrowLeft, ShoppingBag, Zap } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from './lib/routerCompat';
 
 export default function Cart() {
   const { cartItems, addToCart, decreaseQuantity, removeItem, cartCount } = useCart();
@@ -78,45 +80,61 @@ export default function Cart() {
 
                 {/* Info */}
                 <div className="flex-1">
-                  <div className="flex justify-between items-start mb-3">
+                  <div className="flex justify-between items-start mb-2">
                     <h3 
-                      className="text-lg font-bold text-black cursor-pointer hover:text-slate-600 transition"
+                      className="text-base sm:text-lg font-bold text-black cursor-pointer hover:text-slate-600 transition"
                       onClick={() => navigate(`/product/${item.id}`)}
                     >
                       {item.name}
                     </h3>
                     <button
-                      onClick={() => handleRemoveItem(item.id)}
-                      className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                      onClick={() => handleRemoveItem(item.cartKey || item.id)}
+                      className="text-slate-400 hover:text-red-500 transition-colors p-1 cursor-pointer"
                       title="Remove item"
                     >
                       <Trash2 size={18} />
                     </button>
                   </div>
 
-                  <p className="text-black font-black text-xl mb-4">
+                  {/* Selected Size & Color */}
+                  {(item.selectedSize || item.selectedColor) && (
+                    <div className="flex flex-wrap gap-2 text-xs font-semibold text-slate-600 mb-3">
+                      {item.selectedSize && (
+                        <span className="bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
+                          Size: <strong className="text-black">{item.selectedSize}</strong>
+                        </span>
+                      )}
+                      {item.selectedColor && (
+                        <span className="bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
+                          Color: <strong className="text-black">{item.selectedColor}</strong>
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <p className="text-black font-extrabold text-lg sm:text-xl mb-3">
                     PKR {Number(item.price).toLocaleString('en-PK')}
                   </p>
 
                   {/* Quantity */}
-                  <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center gap-3 mb-4">
                     <button
-                      onClick={() => decreaseQuantity(item.id)}
-                      className="w-10 h-10 flex items-center justify-center bg-slate-100 hover:bg-slate-200 rounded-sm transition border border-slate-200 disabled:opacity-50"
+                      onClick={() => decreaseQuantity(item.cartKey || item.id)}
+                      className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-slate-100 hover:bg-slate-200 rounded-md transition border border-slate-200 disabled:opacity-50 cursor-pointer"
                       disabled={item.quantity <= 1}
                     >
-                      <Minus size={16} />
+                      <Minus size={14} />
                     </button>
 
-                    <span className="text-lg font-black min-w-[40px] text-center">
+                    <span className="text-base font-bold min-w-[32px] text-center">
                       {item.quantity}
                     </span>
 
                     <button
-                      onClick={() => addToCart(item)}
-                      className="w-10 h-10 flex items-center justify-center bg-black hover:bg-slate-800 text-white rounded-sm transition"
+                      onClick={() => addToCart(item, { size: item.selectedSize, color: item.selectedColor, quantity: 1 })}
+                      className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-black hover:bg-slate-800 text-white rounded-md transition cursor-pointer"
                     >
-                      <Plus size={16} />
+                      <Plus size={14} />
                     </button>
                   </div>
 

@@ -6,10 +6,28 @@ import { cache } from '../lib/cache.js';
 
 const router = express.Router();
 
-const formatProduct = (p) => ({
-  ...p,
-  images: Array.isArray(p.images) ? p.images.map(img => img.url || img) : []
-});
+const formatProduct = (p) => {
+  let sizesList = [];
+  if (p.sizes) {
+    sizesList = typeof p.sizes === 'string'
+      ? p.sizes.split(',').map(s => s.trim()).filter(Boolean)
+      : (Array.isArray(p.sizes) ? p.sizes : []);
+  }
+
+  let colorsList = [];
+  if (p.colors) {
+    colorsList = typeof p.colors === 'string'
+      ? p.colors.split(',').map(c => c.trim()).filter(Boolean)
+      : (Array.isArray(p.colors) ? p.colors : []);
+  }
+
+  return {
+    ...p,
+    images: Array.isArray(p.images) ? p.images.map(img => img.url || img) : [],
+    sizesList,
+    colorsList
+  };
+};
 
 // GET all products (admin)
 router.get('/', authenticate, adminOnly, async (req, res) => {
@@ -28,7 +46,7 @@ router.get('/', authenticate, adminOnly, async (req, res) => {
 // POST add product
 router.post('/', authenticate, adminOnly, upload.single('imageFile'), async (req, res) => {
   try {
-    const { name, price, category, stock, description, featured } = req.body;
+    const { name, price, category, stock, description, featured, sizes, colors } = req.body;
 
     if (!name || !price || !category) {
       return res.status(400).json({ error: 'Name, price, and category are required' });
@@ -58,6 +76,9 @@ router.post('/', authenticate, adminOnly, upload.single('imageFile'), async (req
       }
     }
 
+    const cleanSizes = typeof sizes === 'string' ? sizes.trim() : (Array.isArray(sizes) ? sizes.join(', ') : '');
+    const cleanColors = typeof colors === 'string' ? colors.trim() : (Array.isArray(colors) ? colors.join(', ') : '');
+
     const product = await prisma.product.create({
       data: {
         name,
@@ -67,6 +88,8 @@ router.post('/', authenticate, adminOnly, upload.single('imageFile'), async (req
         stock: parseInt(stock) || 0,
         description: description || '',
         featured: featured === 'true' || featured === true,
+        sizes: cleanSizes || null,
+        colors: cleanColors || null,
         images: imagesArray.length > 0 ? { create: imagesArray.map(url => ({ url })) } : undefined
       },
       include: { images: true }
@@ -83,7 +106,7 @@ router.post('/', authenticate, adminOnly, upload.single('imageFile'), async (req
 // PUT update product
 router.put('/:id', authenticate, adminOnly, upload.single('imageFile'), async (req, res) => {
   try {
-    const { name, price, category, stock, description, featured } = req.body;
+    const { name, price, category, stock, description, featured, sizes, colors } = req.body;
 
     let imageUrl = req.body.image;
     if (req.file) {
@@ -109,6 +132,9 @@ router.put('/:id', authenticate, adminOnly, upload.single('imageFile'), async (r
       }
     }
 
+    const cleanSizes = sizes !== undefined ? (typeof sizes === 'string' ? sizes.trim() : (Array.isArray(sizes) ? sizes.join(', ') : '')) : undefined;
+    const cleanColors = colors !== undefined ? (typeof colors === 'string' ? colors.trim() : (Array.isArray(colors) ? colors.join(', ') : '')) : undefined;
+
     const dataToUpdate = {
       name,
       price: parseFloat(price),
@@ -118,6 +144,8 @@ router.put('/:id', authenticate, adminOnly, upload.single('imageFile'), async (r
       featured: featured === 'true' || featured === true
     };
     if (imageUrl) dataToUpdate.image = imageUrl;
+    if (cleanSizes !== undefined) dataToUpdate.sizes = cleanSizes || null;
+    if (cleanColors !== undefined) dataToUpdate.colors = cleanColors || null;
 
     if (imagesArray !== null) {
       await prisma.productImage.deleteMany({ where: { productId: req.params.id } });

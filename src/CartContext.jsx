@@ -1,3 +1,5 @@
+'use client';
+
 // src/CartContext.jsx
 import { createContext, useState, useEffect, useContext } from 'react';
 
@@ -9,57 +11,77 @@ const LIKED_PRODUCTS_DATA_KEY = 'luxe-mart-liked-data';
 
 export function CartProvider({ children }) {
   // Cart
-  const [cartItems, setCartItems] = useState(() => {
-    const saved = localStorage.getItem(CART_STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  // Liked products (id -> true/false)
-  const [likedProducts, setLikedProducts] = useState(() => {
-    const saved = localStorage.getItem(LIKED_STORAGE_KEY);
-    return saved ? JSON.parse(saved) : {};
-  });
-
-  // Liked products DATA (id -> {id, name, price, image, category})
-  const [likedProductsData, setLikedProductsData] = useState(() => {
-    const saved = localStorage.getItem(LIKED_PRODUCTS_DATA_KEY);
-    return saved ? JSON.parse(saved) : {};
-  });
+  const [cartItems, setCartItems] = useState([]);
+  const [likedProducts, setLikedProducts] = useState({});
+  const [likedProductsData, setLikedProductsData] = useState({});
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
-  }, [cartItems]);
+    try {
+      const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+      if (savedCart) setCartItems(JSON.parse(savedCart));
+
+      const savedLiked = localStorage.getItem(LIKED_STORAGE_KEY);
+      if (savedLiked) setLikedProducts(JSON.parse(savedLiked));
+
+      const savedLikedData = localStorage.getItem(LIKED_PRODUCTS_DATA_KEY);
+      if (savedLikedData) setLikedProductsData(JSON.parse(savedLikedData));
+    } catch (err) {
+      console.error('Error reading localStorage:', err);
+    }
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem(LIKED_STORAGE_KEY, JSON.stringify(likedProducts));
-  }, [likedProducts]);
+    if (isMounted) localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+  }, [cartItems, isMounted]);
 
   useEffect(() => {
-    localStorage.setItem(LIKED_PRODUCTS_DATA_KEY, JSON.stringify(likedProductsData));
-  }, [likedProductsData]);
+    if (isMounted) localStorage.setItem(LIKED_STORAGE_KEY, JSON.stringify(likedProducts));
+  }, [likedProducts, isMounted]);
 
-  const addToCart = (product) => {
+  useEffect(() => {
+    if (isMounted) localStorage.setItem(LIKED_PRODUCTS_DATA_KEY, JSON.stringify(likedProductsData));
+  }, [likedProductsData, isMounted]);
+
+  const addToCart = (product, options = {}) => {
+    const size = options.size || product.selectedSize || null;
+    const color = options.color || product.selectedColor || null;
+    const qty = options.quantity || product.quantity || 1;
+    const uniqueKey = `${product.id}${size ? `_sz:${size}` : ''}${color ? `_col:${color}` : ''}`;
+
     setCartItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
-      if (existing) {
-        return prev.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+      const existingIndex = prev.findIndex(item => (item.cartKey || item.id) === uniqueKey);
+      if (existingIndex > -1) {
+        return prev.map((item, idx) =>
+          idx === existingIndex ? { ...item, quantity: item.quantity + qty } : item
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [
+        ...prev,
+        {
+          ...product,
+          cartKey: uniqueKey,
+          selectedSize: size,
+          selectedColor: color,
+          quantity: qty
+        }
+      ];
     });
   };
 
-  const decreaseQuantity = (productId) => {
+  const decreaseQuantity = (cartKeyOrId) => {
     setCartItems(prev =>
       prev.map(item =>
-        item.id === productId ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item
+        (item.cartKey || item.id) === cartKeyOrId
+          ? { ...item, quantity: Math.max(1, item.quantity - 1) }
+          : item
       )
     );
   };
 
-  const removeItem = (productId) => {
-    setCartItems(prev => prev.filter(item => item.id !== productId));
+  const removeItem = (cartKeyOrId) => {
+    setCartItems(prev => prev.filter(item => (item.cartKey || item.id) !== cartKeyOrId));
   };
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);

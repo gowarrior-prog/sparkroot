@@ -64,6 +64,8 @@ export default function ProductForm({ form, setForm, editingProduct, onClose, on
           stock: Number(form.stock),
           description: form.description,
           featured: Boolean(form.featured),
+          sizes: form.sizes || '',
+          colors: form.colors || '',
           image: form.image,
           extraImages: validGallery
         })
@@ -119,6 +121,38 @@ export default function ProductForm({ form, setForm, editingProduct, onClose, on
                 <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
               ))}
             </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50/70 p-4 rounded-lg border border-slate-200">
+          <div>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Available Sizes (Optional)</label>
+              <span className="text-[11px] text-slate-400 font-medium">Comma-separated</span>
+            </div>
+            <input
+              type="text"
+              placeholder="e.g. S, M, L, XL or 6, 7, 8, 9"
+              value={form.sizes || ''}
+              onChange={e => setForm(f => ({ ...f, sizes: e.target.value }))}
+              className="w-full bg-white border border-slate-200 rounded-sm px-4 py-2.5 focus:border-black outline-none transition font-medium text-sm"
+            />
+            <p className="text-[11px] text-slate-400 mt-1">Agar product ka koi size option nahi hai to isay khali chordein.</p>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="text-xs font-bold uppercase tracking-widest text-slate-700">Available Colors (Optional)</label>
+              <span className="text-[11px] text-slate-400 font-medium">Comma-separated</span>
+            </div>
+            <input
+              type="text"
+              placeholder="e.g. Gold, Silver, Rose Gold, Black"
+              value={form.colors || ''}
+              onChange={e => setForm(f => ({ ...f, colors: e.target.value }))}
+              className="w-full bg-white border border-slate-200 rounded-sm px-4 py-2.5 focus:border-black outline-none transition font-medium text-sm"
+            />
+            <p className="text-[11px] text-slate-400 mt-1">Agar product ka koi color option nahi hai to isay khali chordein.</p>
           </div>
         </div>
 

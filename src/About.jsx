@@ -1,5 +1,7 @@
+'use client';
+
 // src/pages/About.jsx
-import { Link } from 'react-router-dom';
+import { Link } from './lib/routerCompat';
 import { Sparkles, Diamond, Heart, ShieldCheck, Truck, Recycle } from 'lucide-react';
 import SEO from './SEO';
 

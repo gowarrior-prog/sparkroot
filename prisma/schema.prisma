@@ -15,7 +15,10 @@ model Product {
   stock       Int            @default(0)
   description String?
   featured    Boolean        @default(false)
+  sizes       String?        // Comma-separated sizes e.g. "S, M, L" or "6, 7, 8"
+  colors      String?        // Comma-separated colors e.g. "Gold, Silver, Rose Gold"
   images      ProductImage[]
+  reviews     Review[]
   createdAt   DateTime       @default(now())
 }
 
@@ -24,6 +27,16 @@ model ProductImage {
   url       String   @db.Text
   productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userName  String
+  rating    Int      @default(5)
+  comment   String   @db.Text
   createdAt DateTime @default(now())
 }
 

@@ -1,3 +1,5 @@
+'use client';
+
 import { Clock, Trash2 } from 'lucide-react';
 import { API } from '../api';
 
@@ -87,7 +89,11 @@ export default function AdminOrders({ orders, onRefresh, getAuthHeaders, handleA
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-black truncate">{item.name}</p>
-                          <p className="text-xs text-slate-400">Qty: {item.quantity} × PKR {Number(item.price).toLocaleString()}</p>
+                          <p className="text-xs text-slate-500">
+                            Qty: {item.quantity} × PKR {Number(item.price).toLocaleString()}
+                            {item.size && <span className="ml-2 font-semibold text-black">• Size: {item.size}</span>}
+                            {item.color && <span className="ml-2 font-semibold text-black">• Color: {item.color}</span>}
+                          </p>
                         </div>
                         <p className="text-sm font-black text-black flex-shrink-0">PKR {(item.price * item.quantity).toLocaleString()}</p>
                       </div>

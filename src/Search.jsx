@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate } from './lib/routerCompat';
 import { useCart } from './CartContext';
 import { ShoppingCart, Heart, Zap, Search as SearchIcon } from 'lucide-react';
 import { API } from './api';

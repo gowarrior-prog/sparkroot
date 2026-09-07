@@ -132,7 +132,11 @@ export default function OrderCard({
                     />
                     <div>
                       <p className="text-sm font-bold text-black">{item.name}</p>
-                      <p className="text-xs text-slate-400 font-medium">Qty: {item.quantity}</p>
+                      <p className="text-xs text-slate-500 font-medium">
+                        Qty: {item.quantity}
+                        {item.size && <span className="ml-1.5">• Size: <strong className="text-black">{item.size}</strong></span>}
+                        {item.color && <span className="ml-1.5">• Color: <strong className="text-black">{item.color}</strong></span>}
+                      </p>
                     </div>
                   </div>
                   <p className="text-sm font-black text-black">PKR {(item.price * item.quantity).toLocaleString()}</p>

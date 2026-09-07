@@ -81,4 +81,35 @@ router.patch('/orders/:id', authenticate, adminOnly, async (req, res) => {
   }
 });
 
+// GET all reviews (admin)
+router.get('/reviews', authenticate, adminOnly, async (req, res) => {
+  try {
+    const reviews = await prisma.review.findMany({
+      include: {
+        product: {
+          select: { id: true, name: true, image: true, category: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(reviews);
+  } catch (error) {
+    console.error('Admin reviews error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// DELETE a review (admin)
+router.delete('/reviews/:id', authenticate, adminOnly, async (req, res) => {
+  try {
+    await prisma.review.delete({
+      where: { id: req.params.id }
+    });
+    res.json({ message: 'Review deleted successfully' });
+  } catch (error) {
+    console.error('Delete review error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;

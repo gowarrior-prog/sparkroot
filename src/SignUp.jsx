@@ -1,5 +1,7 @@
+'use client';
+
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from './lib/routerCompat';
 import { Mail, Lock, ArrowRight, User } from 'lucide-react';
 import { API } from './api';
 import Logo from './Logo';

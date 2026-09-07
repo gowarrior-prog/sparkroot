@@ -23,3 +23,8 @@ node_modules
 
 /src/generated/prisma
 uploads/  
+.next/
+.env*
+.DS_Store
+*.log
+

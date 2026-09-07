@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from './lib/routerCompat';
 import { useCart } from './CartContext';
 import { ShoppingCart, Heart, Zap } from 'lucide-react';
 import SEO from './SEO';

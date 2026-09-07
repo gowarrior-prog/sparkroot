@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Link, useNavigate } from './lib/routerCompat';
+import { Menu, X, ChevronDown, Sparkles, Gem, Watch, ShoppingBag, Sparkle } from 'lucide-react';
 import { useCart } from './CartContext';
 import Logo from './Logo';
 import { API } from './api';
@@ -11,6 +12,7 @@ import NavDesktopActions from './components/navbar/NavDesktopActions';
 import NavMobileMenu from './components/navbar/NavMobileMenu';
 
 export default function Navbar() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isShopOpen, setIsShopOpen] = useState(false);
@@ -21,14 +23,25 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const { likedCount, cartCount } = useCart();
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    try {
+      const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+      if (userStr) setUser(JSON.parse(userStr));
+    } catch (e) {}
+  }, []);
 
   useEffect(() => {
     getCachedProducts().then((data) => {
       if (Array.isArray(data)) allProductsCache.current = data;
     });
   }, []);
+
+  // Hide store Navbar completely on Admin panel!
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   const getImageUrl = (imgPath) => {
     if (!imgPath) return '';
@@ -72,43 +85,68 @@ export default function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
-      <nav className="w-full z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm transition-all duration-300">
+      
+      {/* ── Top Announcement Ticker ── */}
+      <div className="bg-slate-950 text-amber-300 text-[10px] sm:text-xs py-1.5 px-4 text-center font-bold tracking-[0.18em] uppercase border-b border-white/10 flex items-center justify-center gap-2">
+        <Sparkles size={13} className="text-amber-400 animate-pulse shrink-0" />
+        <span>Shop with Confidence: 100% Authentic Products & Easy Returns</span>
+        <Sparkles size={13} className="text-amber-400 animate-pulse shrink-0 hidden sm:inline" />
+      </div>
+
+      {/* ── Main Navbar Container ── */}
+      <nav className="w-full bg-white/95 backdrop-blur-xl border-b border-slate-200/80 shadow-xs transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+          <div className="flex justify-between items-center h-16 sm:h-20">
+            
+            {/* Logo */}
             <div className="flex-shrink-0">
-              <Link to="/" className="flex items-center">
-                <Logo className="h-16 md:h-[72px]" />
+              <Link to="/" className="flex items-center group">
+                <Logo className="h-12 sm:h-16 md:h-20 transition-transform group-hover:scale-102 duration-300" />
               </Link>
             </div>
 
-            <div className="hidden lg:flex lg:items-center lg:gap-10">
-              <Link to="/" className="text-slate-800 hover:text-black font-semibold tracking-widest uppercase text-xs transition">
+            {/* Desktop Navigation Links */}
+            <div className="hidden lg:flex lg:items-center lg:gap-8">
+              
+              <Link
+                to="/"
+                className="text-slate-800 hover:text-black font-bold tracking-[0.18em] uppercase text-xs transition relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-500 hover:after:w-full after:transition-all"
+              >
                 Home
               </Link>
-              <div className="relative">
-                <button
-                  onClick={() => setIsShopOpen(!isShopOpen)}
-                  className="hidden md:flex items-center text-slate-800 hover:text-black font-semibold tracking-widest uppercase text-xs transition group cursor-pointer"
-                >
-                  Shop
-                  <ChevronDown size={14} className="ml-1 opacity-50 group-hover:opacity-100 transition-transform group-hover:rotate-180" />
-                </button>
-                {isShopOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-slate-200 shadow-xl rounded-sm overflow-hidden animate-in fade-in slide-in-from-top-2 z-50">
-                    <div className="py-2 flex flex-col">
-                      <Link onClick={() => setIsShopOpen(false)} to="/category/jewelry" className="px-4 py-2 hover:bg-slate-50 text-slate-700 hover:text-black transition uppercase tracking-widest text-xs font-semibold">Jewelry</Link>
-                      <Link onClick={() => setIsShopOpen(false)} to="/category/cosmetics" className="px-4 py-2 hover:bg-slate-50 text-slate-700 hover:text-black transition uppercase tracking-widest text-xs font-semibold">Cosmetics</Link>
-                      <Link onClick={() => setIsShopOpen(false)} to="/category/fashion" className="px-4 py-2 hover:bg-slate-50 text-slate-700 hover:text-black transition uppercase tracking-widest text-xs font-semibold">Fashion</Link>
-                      <Link onClick={() => setIsShopOpen(false)} to="/category/bags" className="px-4 py-2 hover:bg-slate-50 text-slate-700 hover:text-black transition uppercase tracking-widest text-xs font-semibold">Bags & Accessories</Link>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <Link to="/about" className="text-slate-800 hover:text-black font-semibold tracking-widest uppercase text-xs transition">
-                About
+
+              {/* Category Links */}
+              <Link
+                to="/category/jewelry"
+                className="text-slate-800 hover:text-black font-bold tracking-[0.18em] uppercase text-xs transition relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-500 hover:after:w-full after:transition-all"
+              >
+                Jewelry
               </Link>
+
+              <Link
+                to="/category/fashion"
+                className="text-slate-800 hover:text-black font-bold tracking-[0.18em] uppercase text-xs transition relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-500 hover:after:w-full after:transition-all"
+              >
+                Watches
+              </Link>
+
+              <Link
+                to="/category/cosmetics"
+                className="text-slate-800 hover:text-black font-bold tracking-[0.18em] uppercase text-xs transition relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-500 hover:after:w-full after:transition-all"
+              >
+                Cosmetics
+              </Link>
+
+              <Link
+                to="/category/bags"
+                className="text-slate-800 hover:text-black font-bold tracking-[0.18em] uppercase text-xs transition relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-500 hover:after:w-full after:transition-all"
+              >
+                Accessories
+              </Link>
+
             </div>
 
+            {/* Desktop Actions (Search, Orders, Wishlist, Cart, Profile) */}
             <NavDesktopActions
               searchQuery={searchQuery}
               handleSearchChange={handleSearchChange}
@@ -126,12 +164,18 @@ export default function Navbar() {
               handleLogout={handleLogout}
             />
 
-            <button className="lg:hidden text-black p-2" onClick={() => setIsOpen(!isOpen)}>
+            {/* Mobile Menu Toggle Button */}
+            <button
+              className="lg:hidden text-slate-900 p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+              onClick={() => setIsOpen(!isOpen)}
+              aria-label="Toggle menu"
+            >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
 
+        {/* Mobile Slide-down Drawer */}
         <NavMobileMenu
           isOpen={isOpen}
           setIsOpen={setIsOpen}

@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { API } from '../api';
@@ -13,6 +15,8 @@ const BLANK_FORM = {
   stock: '0',
   description: '',
   featured: false,
+  sizes: '',
+  colors: '',
   galleryImages: []
 };
 
@@ -44,6 +48,8 @@ export default function AdminProducts({ products, onRefresh, getAuthHeaders, han
       ...product,
       price: String(product.price || 0),
       stock: String(product.stock ?? 0),
+      sizes: product.sizes || (Array.isArray(product.sizesList) ? product.sizesList.join(', ') : '') || '',
+      colors: product.colors || (Array.isArray(product.colorsList) ? product.colorsList.join(', ') : '') || '',
       imageFile: null,
       galleryImages: gallery
     });

@@ -5,12 +5,11 @@
   "type": "module",
   "scripts": {
     "postinstall": "prisma generate",
-    "dev": "concurrently \"vite\" \"node server.js\"",
-    "build": "tsc -b && vite build",
-    "start": "node server.js",
-    "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "vite:dev": "concurrently \"vite\" \"node server.js\"",
+    "vite:build": "tsc -b && vite build"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
@@ -24,6 +23,7 @@
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.575.0",
     "multer": "^2.2.0",
+    "next": "^16.3.4",
     "pg": "^8.13.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^22.10.5",
     "@types/pg": "^8.11.11",
