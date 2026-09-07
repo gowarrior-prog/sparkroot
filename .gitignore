@@ -24,7 +24,9 @@ node_modules
 /src/generated/prisma
 uploads/  
 .next/
+dist/
 .env*
 .DS_Store
 *.log
+
 
