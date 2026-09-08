@@ -52,6 +52,7 @@ export default function Admin() {
       const res = await fetch(map[activeTab], { headers: getAuthHeaders() });
       if (handleAuthError(res.status)) return;
       if (!res.ok) return;
+      const data = await res.json();
       let localOrders = [];
       try {
         localOrders = JSON.parse(localStorage.getItem('sparkroot_user_orders') || '[]');
