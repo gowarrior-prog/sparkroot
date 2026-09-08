@@ -52,11 +52,46 @@ export default function Admin() {
       const res = await fetch(map[activeTab], { headers: getAuthHeaders() });
       if (handleAuthError(res.status)) return;
       if (!res.ok) return;
-      const data = await res.json();
-      if (activeTab === 'dashboard') setStats(data);
+      let localOrders = [];
+      try {
+        localOrders = JSON.parse(localStorage.getItem('sparkroot_user_orders') || '[]');
+      } catch {}
+
+      if (activeTab === 'dashboard') {
+        if (data) {
+          const existingIds = new Set((data.recentOrders || []).map(o => String(o.id)));
+          const mergedRecent = [...(data.recentOrders || [])];
+          for (const lo of localOrders) {
+            if (!existingIds.has(String(lo.id))) {
+              mergedRecent.unshift({
+                ...lo,
+                user: { name: 'Customer', email: lo.email || 'customer@sparkroot.com' }
+              });
+            }
+          }
+          setStats({
+            ...data,
+            totalOrders: Math.max(data.totalOrders || 0, mergedRecent.length),
+            recentOrders: mergedRecent.slice(0, 5)
+          });
+        }
+      }
       if (activeTab === 'products')  setProducts(data);
       if (activeTab === 'users')     setUsers(data);
-      if (activeTab === 'orders')    setOrders(data);
+      if (activeTab === 'orders') {
+        const existingIds = new Set((Array.isArray(data) ? data : []).map(o => String(o.id)));
+        const mergedOrders = Array.isArray(data) ? [...data] : [];
+        for (const lo of localOrders) {
+          if (!existingIds.has(String(lo.id))) {
+            mergedOrders.push({
+              ...lo,
+              user: { name: 'Customer', email: lo.email || 'customer@sparkroot.com' }
+            });
+          }
+        }
+        mergedOrders.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        setOrders(mergedOrders);
+      }
       if (activeTab === 'reviews')   setReviews(data);
     } catch (err) {
       console.error('Fetch error:', err);

@@ -110,7 +110,7 @@ export default function Navbar() {
               
               <Link
                 to="/"
-                className="text-slate-800 hover:text-black font-bold tracking-[0.18em] uppercase text-xs transition relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-500 hover:after:w-full after:transition-all"
+                className="text-slate-800 hover:text-black font-bold tracking-[0.18em] uppercase text-xs transition relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-black hover:after:w-full after:transition-all"
               >
                 Home
               </Link>
@@ -118,28 +118,28 @@ export default function Navbar() {
               {/* Category Links */}
               <Link
                 to="/category/jewelry"
-                className="text-slate-800 hover:text-black font-bold tracking-[0.18em] uppercase text-xs transition relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-500 hover:after:w-full after:transition-all"
+                className="text-slate-800 hover:text-black font-bold tracking-[0.18em] uppercase text-xs transition relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-black hover:after:w-full after:transition-all"
               >
                 Jewelry
               </Link>
 
               <Link
                 to="/category/fashion"
-                className="text-slate-800 hover:text-black font-bold tracking-[0.18em] uppercase text-xs transition relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-500 hover:after:w-full after:transition-all"
+                className="text-slate-800 hover:text-black font-bold tracking-[0.18em] uppercase text-xs transition relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-black hover:after:w-full after:transition-all"
               >
                 Watches
               </Link>
 
               <Link
                 to="/category/cosmetics"
-                className="text-slate-800 hover:text-black font-bold tracking-[0.18em] uppercase text-xs transition relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-500 hover:after:w-full after:transition-all"
+                className="text-slate-800 hover:text-black font-bold tracking-[0.18em] uppercase text-xs transition relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-black hover:after:w-full after:transition-all"
               >
                 Cosmetics
               </Link>
 
               <Link
                 to="/category/bags"
-                className="text-slate-800 hover:text-black font-bold tracking-[0.18em] uppercase text-xs transition relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-500 hover:after:w-full after:transition-all"
+                className="text-slate-800 hover:text-black font-bold tracking-[0.18em] uppercase text-xs transition relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-black hover:after:w-full after:transition-all"
               >
                 Accessories
               </Link>
@@ -175,7 +175,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Slide-down Drawer */}
+        {/* Mobile Right Side Nav */}
         <NavMobileMenu
           isOpen={isOpen}
           setIsOpen={setIsOpen}

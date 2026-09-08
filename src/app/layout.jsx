@@ -1,7 +1,9 @@
 import '../index.css';
 import { CartProvider } from '../CartContext';
+import { ToastProvider } from '../components/ToastProvider';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
+import WhatsAppConcierge from '../components/WhatsAppConcierge';
 
 export const metadata = {
   title: 'SPARKROOT — Modern Luxury E-Commerce',
@@ -28,11 +30,14 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="min-h-screen bg-white text-slate-900 flex flex-col font-sans antialiased">
-        <CartProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </CartProvider>
+        <ToastProvider>
+          <CartProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <WhatsAppConcierge />
+          </CartProvider>
+        </ToastProvider>
       </body>
     </html>
   );

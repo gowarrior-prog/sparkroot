@@ -27,6 +27,5 @@ uploads/
 dist/
 .env*
 .DS_Store
-*.log
-
+data/
 

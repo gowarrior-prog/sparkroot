@@ -61,14 +61,19 @@ export default function Wishlist() {
 
   const handleBuyNow = (e, item) => {
     e.stopPropagation();
-    addToCart(item);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('buyNowItem', JSON.stringify({
+        ...item,
+        quantity: 1,
+        cartKey: `buynow_${item.id}`
+      }));
+    }
     navigate('/checkout');
   };
 
   const handleAddToCart = (e, item) => {
     e.stopPropagation();
     addToCart(item);
-    alert('Added to cart!');
   };
 
   return (

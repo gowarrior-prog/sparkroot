@@ -2,6 +2,7 @@
 
 // src/CartContext.jsx
 import { createContext, useState, useEffect, useContext } from 'react';
+import { useToast } from './components/ToastProvider';
 
 const CartContext = createContext();
 
@@ -10,6 +11,7 @@ const LIKED_STORAGE_KEY = 'luxe-mart-liked';
 const LIKED_PRODUCTS_DATA_KEY = 'luxe-mart-liked-data';
 
 export function CartProvider({ children }) {
+  const { addToast } = useToast();
   // Cart
   const [cartItems, setCartItems] = useState([]);
   const [likedProducts, setLikedProducts] = useState({});
@@ -68,6 +70,11 @@ export function CartProvider({ children }) {
         }
       ];
     });
+
+    if (!options.silent) {
+      const name = product.name ? `"${product.name.slice(0, 30)}${product.name.length > 30 ? '...' : ''}"` : 'Item';
+      addToast(`${name} has been added to your cart!`, 'success');
+    }
   };
 
   const decreaseQuantity = (cartKeyOrId) => {
@@ -80,8 +87,11 @@ export function CartProvider({ children }) {
     );
   };
 
-  const removeItem = (cartKeyOrId) => {
+  const removeItem = (cartKeyOrId, silent = false) => {
     setCartItems(prev => prev.filter(item => (item.cartKey || item.id) !== cartKeyOrId));
+    if (!silent) {
+      addToast('Your product is deleted', 'delete');
+    }
   };
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);

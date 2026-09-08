@@ -164,7 +164,6 @@ export default function RelatedProducts({ currentProductId, category }) {
                   onClick={(e) => {
                     e.stopPropagation();
                     addToCart(item);
-                    alert('Added to cart!');
                   }}
                   className="w-full bg-slate-100 hover:bg-black hover:text-white text-slate-900 border border-slate-200 font-semibold py-2 px-3 rounded-md flex items-center justify-center gap-1.5 transition text-xs uppercase tracking-wider cursor-pointer"
                 >

@@ -94,34 +94,26 @@ export default function ProductDetail() {
 
   const handleAddToCart = (options = {}) => {
     addToCart(product, options);
-    setAddedToast(true);
-    setTimeout(() => setAddedToast(false), 2500);
   };
 
   const handleBuyNow = (options = {}) => {
-    addToCart(product, options);
+    if (typeof window !== 'undefined') {
+      const size = options.size || product.selectedSize || null;
+      const color = options.color || product.selectedColor || null;
+      const qty = options.quantity || 1;
+      sessionStorage.setItem('buyNowItem', JSON.stringify({
+        ...product,
+        selectedSize: size,
+        selectedColor: color,
+        quantity: qty,
+        cartKey: `buynow_${product.id}`
+      }));
+    }
     navigate('/checkout');
   };
 
   return (
     <div className="min-h-screen bg-white text-slate-900 pt-24 pb-24 px-4 sm:px-6 lg:px-8 animate-fade-in">
-      {/* Toast Notification */}
-      {addedToast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-black text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300">
-          <CheckCircle2 size={18} className="text-emerald-400" />
-          <div className="text-xs">
-            <p className="font-bold">Added to Cart!</p>
-            <p className="text-slate-300 font-normal">{product.name}</p>
-          </div>
-          <button
-            onClick={() => navigate('/cart')}
-            className="ml-2 underline font-semibold text-xs text-slate-200 hover:text-white"
-          >
-            View Cart
-          </button>
-        </div>
-      )}
-
       <div className="max-w-7xl mx-auto">
         {/* Modern Breadcrumb Navigation */}
         <nav className="flex items-center gap-2 text-xs font-medium text-slate-400 mb-8 overflow-x-auto whitespace-nowrap pb-1">

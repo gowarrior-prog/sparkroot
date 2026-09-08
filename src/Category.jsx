@@ -63,12 +63,17 @@ export default function Category() {
   const handleAddClick = (e, product) => {
     e.stopPropagation();
     addToCart(product);
-    alert('Added to cart!');
   };
 
   const handleBuyNow = (e, product) => {
     e.stopPropagation();
-    addToCart(product);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('buyNowItem', JSON.stringify({
+        ...product,
+        quantity: 1,
+        cartKey: `buynow_${product.id}`
+      }));
+    }
     navigate('/checkout');
   };
 
