@@ -11,6 +11,7 @@ import UserMobileDrawer from './components/user/UserMobileDrawer';
 import UserProfileTab from './components/user/UserProfileTab';
 import UserOrdersTab from './components/user/UserOrdersTab';
 import UserAddressesTab from './components/user/UserAddressesTab';
+import UserSupportWishlistTabs from './components/user/UserSupportWishlistTabs';
 import AddAddressModal from './components/user/AddAddressModal';
 import { useUserOrders } from './components/user/useUserOrders';
 
