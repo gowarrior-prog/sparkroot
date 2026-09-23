@@ -73,8 +73,11 @@ export async function POST(request) {
           status: 'pending',
           items: itemsJson,
           address: address || '',
+          city: city || '',
+          postalCode: postalCode || '',
           phone: phone || '',
-          email: email || ''
+          email: email || '',
+          name: name || ''
         }
       });
       // Attach name, city, postalCode to returned order object for runtime access

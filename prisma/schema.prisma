@@ -51,14 +51,17 @@ model User {
 }
 
 model Order {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  total     Float
-  status    String   @default("pending")
-  items     String?
-  address   String?
-  phone     String?
-  email     String?
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  total      Float
+  status     String   @default("pending")
+  items      String?
+  address    String?
+  city       String?
+  postalCode String?
+  phone      String?
+  email      String?
+  name       String?
+  user       User     @relation(fields: [userId], references: [id])
+  createdAt  DateTime @default(now())
 }
