@@ -47,18 +47,38 @@ export function CartProvider({ children }) {
   }, [likedProductsData, isMounted]);
 
   const addToCart = (product, options = {}) => {
+    const stockNum = product.stock !== undefined ? Number(product.stock) : null;
+    if (stockNum !== null && stockNum <= 0) {
+      addToast(`"${product.name || 'Product'}" is Out of Stock and cannot be added.`, 'delete', 'Out of Stock');
+      return;
+    }
+
     const size = options.size || product.selectedSize || null;
     const color = options.color || product.selectedColor || null;
     const qty = options.quantity || product.quantity || 1;
     const uniqueKey = `${product.id}${size ? `_sz:${size}` : ''}${color ? `_col:${color}` : ''}`;
 
+    let isOverStock = false;
+
     setCartItems(prev => {
       const existingIndex = prev.findIndex(item => (item.cartKey || item.id) === uniqueKey);
       if (existingIndex > -1) {
+        const currentQty = prev[existingIndex].quantity;
+        if (stockNum !== null && currentQty + qty > stockNum) {
+          isOverStock = true;
+          return prev.map((item, idx) =>
+            idx === existingIndex ? { ...item, quantity: stockNum } : item
+          );
+        }
         return prev.map((item, idx) =>
           idx === existingIndex ? { ...item, quantity: item.quantity + qty } : item
         );
       }
+
+      if (stockNum !== null && qty > stockNum) {
+        isOverStock = true;
+      }
+
       return [
         ...prev,
         {
@@ -66,10 +86,15 @@ export function CartProvider({ children }) {
           cartKey: uniqueKey,
           selectedSize: size,
           selectedColor: color,
-          quantity: qty
+          quantity: isOverStock ? stockNum : qty
         }
       ];
     });
+
+    if (isOverStock) {
+      addToast(`Stock limit reached! Available stock is ${stockNum} units.`, 'delete', 'Stock Limit Reached');
+      return;
+    }
 
     if (!options.silent) {
       const name = product.name ? `"${product.name.slice(0, 30)}${product.name.length > 30 ? '...' : ''}"` : 'Item';

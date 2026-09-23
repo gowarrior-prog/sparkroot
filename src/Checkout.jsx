@@ -92,6 +92,12 @@ export default function Checkout() {
       return;
     }
 
+    const outOfStockItem = checkoutItems.find(item => item.stock !== undefined && Number(item.stock) <= 0);
+    if (outOfStockItem) {
+      addToast(`Cannot place order: "${outOfStockItem.name || 'Product'}" is Out of Stock!`, 'delete', 'Out of Stock');
+      return;
+    }
+
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     setIsSubmitting(true);
 

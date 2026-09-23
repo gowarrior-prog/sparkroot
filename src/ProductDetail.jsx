@@ -92,6 +92,11 @@ export default function ProductDetail() {
   };
 
   const handleBuyNow = (options = {}) => {
+    const stockNum = product.stock !== undefined ? Number(product.stock) : null;
+    if (stockNum !== null && stockNum <= 0) {
+      addToast(`"${product.name || 'Product'}" is Out of Stock and cannot be purchased right now.`, 'delete', 'Out of Stock');
+      return;
+    }
     if (typeof window !== 'undefined') {
       const size = options.size || product.selectedSize || null;
       const color = options.color || product.selectedColor || null;

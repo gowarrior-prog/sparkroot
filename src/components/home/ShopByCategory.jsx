@@ -9,42 +9,42 @@ export default function ShopByCategory() {
     {
       name: 'Electronics',
       slug: 'electronics',
-      image: '/images/categories/electronics.png',
+      image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400&auto=format&fit=crop&q=80',
     },
     {
       name: 'Fashion',
       slug: 'fashion',
-      image: '/images/categories/fashion.png',
+      image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=400&auto=format&fit=crop&q=80',
     },
     {
       name: 'Jewelry',
       slug: 'jewelry',
-      image: '/images/categories/jewelry.png',
+      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&auto=format&fit=crop&q=80',
     },
     {
       name: 'Beauty',
       slug: 'cosmetics',
-      image: '/images/categories/cosmetics.png',
+      image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400&auto=format&fit=crop&q=80',
     },
     {
       name: 'Bags',
       slug: 'bags',
-      image: '/images/categories/bags.png',
+      image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400&auto=format&fit=crop&q=80',
     },
     {
       name: "Men's Wear",
       slug: 'mens-wear',
-      image: '/images/categories/mens-wear.png',
+      image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&auto=format&fit=crop&q=80',
     },
     {
       name: "Women's Wear",
       slug: 'womens-wear',
-      image: '/images/categories/womens-wear.png',
+      image: 'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400&auto=format&fit=crop&q=80',
     },
     {
       name: 'Toys & Games',
       slug: 'toys',
-      image: '/images/categories/toys.png',
+      image: 'https://images.unsplash.com/photo-1592840496694-26d035b52b48?w=400&auto=format&fit=crop&q=80',
     },
   ];
 
