@@ -14,31 +14,73 @@ export default function AddAddressModal({ showAddAddressModal, setShowAddAddress
           </button>
         </div>
         <form onSubmit={handleAddAddress} className="space-y-3 text-xs">
-          <input
-            type="text"
-            required
-            placeholder="Full Name"
-            value={newAddr.name}
-            onChange={e => setNewAddr({ ...newAddr, name: e.target.value })}
-            className="w-full bg-[#f4f4f6] p-3 rounded-xl border border-gray-200"
-          />
-          <input
-            type="text"
-            required
-            placeholder="Street Address, City"
-            value={newAddr.address}
-            onChange={e => setNewAddr({ ...newAddr, address: e.target.value })}
-            className="w-full bg-[#f4f4f6] p-3 rounded-xl border border-gray-200"
-          />
-          <input
-            type="text"
-            placeholder="Phone Number"
-            value={newAddr.phone}
-            onChange={e => setNewAddr({ ...newAddr, phone: e.target.value })}
-            className="w-full bg-[#f4f4f6] p-3 rounded-xl border border-gray-200"
-          />
-          <button type="submit" className="w-full py-3 bg-black text-white font-bold rounded-xl uppercase">
-            Save Address
+          <div>
+            <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Full Name *</label>
+            <input
+              type="text"
+              required
+              placeholder="Full Name"
+              value={newAddr.name || ''}
+              onChange={e => setNewAddr({ ...newAddr, name: e.target.value })}
+              className="w-full bg-[#f4f4f6] p-3 rounded-xl border border-gray-200"
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Phone Number *</label>
+            <input
+              type="tel"
+              required
+              placeholder="03xx-xxxxxxx"
+              value={newAddr.phone || ''}
+              onChange={e => setNewAddr({ ...newAddr, phone: e.target.value })}
+              className="w-full bg-[#f4f4f6] p-3 rounded-xl border border-gray-200"
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Street Address *</label>
+            <input
+              type="text"
+              required
+              placeholder="Street address, house number, area"
+              value={newAddr.address || ''}
+              onChange={e => setNewAddr({ ...newAddr, address: e.target.value })}
+              className="w-full bg-[#f4f4f6] p-3 rounded-xl border border-gray-200"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">City</label>
+              <input
+                type="text"
+                placeholder="City Name"
+                value={newAddr.city || ''}
+                onChange={e => setNewAddr({ ...newAddr, city: e.target.value })}
+                className="w-full bg-[#f4f4f6] p-3 rounded-xl border border-gray-200"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Postal / Port Code</label>
+              <input
+                type="text"
+                placeholder="Port/Zip Code"
+                value={newAddr.postalCode || ''}
+                onChange={e => setNewAddr({ ...newAddr, postalCode: e.target.value })}
+                className="w-full bg-[#f4f4f6] p-3 rounded-xl border border-gray-200"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Email Address</label>
+            <input
+              type="email"
+              placeholder="your@email.com"
+              value={newAddr.email || ''}
+              onChange={e => setNewAddr({ ...newAddr, email: e.target.value })}
+              className="w-full bg-[#f4f4f6] p-3 rounded-xl border border-gray-200"
+            />
+          </div>
+          <button type="submit" className="w-full py-3.5 bg-black text-white font-bold rounded-xl uppercase tracking-wider transition hover:bg-slate-800 cursor-pointer mt-2">
+            Save Complete Address
           </button>
         </form>
       </div>

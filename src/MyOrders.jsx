@@ -23,7 +23,7 @@ export default function MyOrders() {
   const [addresses, setAddresses] = useState([]);
   const [showAddAddressModal, setShowAddAddressModal] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
-  const [newAddr, setNewAddr] = useState({ tag: 'Home', name: '', address: '', phone: '' });
+  const [newAddr, setNewAddr] = useState({ tag: 'Home', name: '', phone: '', address: '', city: '', postalCode: '', email: '' });
 
   const navigate = useNavigate();
   const { addToast } = useToast();
@@ -38,14 +38,14 @@ export default function MyOrders() {
       const uStr = localStorage.getItem('user');
       if (uStr) {
         const p = JSON.parse(uStr);
-        setUser(prev => ({ ...prev, name: p.name || 'Customer', email: p.email || '', phone: p.phone || 'Not Added', address: p.address || 'Not Added', joined: p.joined || '2025', role: p.role || 'user' }));
+        setUser(prev => ({ ...prev, name: p.name || 'Customer', email: p.email || '', phone: (p.phone && p.phone !== '03467921114' && p.phone !== 'Not Added') ? p.phone : 'Not Added', address: p.address || 'Not Added', joined: p.joined || '2025', role: p.role || 'user' }));
       }
       const savedAddresses = localStorage.getItem('sparkroot_user_addresses');
       if (savedAddresses) {
         const parsedAddr = JSON.parse(savedAddresses);
         if (Array.isArray(parsedAddr) && parsedAddr.length > 0) {
           setAddresses(parsedAddr);
-          setUser(prev => ({ ...prev, address: parsedAddr[0].address || prev.address, phone: parsedAddr[0].phone || prev.phone }));
+          setUser(prev => ({ ...prev, address: parsedAddr[0].address || prev.address, phone: (parsedAddr[0].phone && parsedAddr[0].phone !== '03467921114') ? parsedAddr[0].phone : prev.phone }));
         }
       }
     } catch (e) {}
@@ -61,14 +61,33 @@ export default function MyOrders() {
   const handleAddAddress = (e) => {
     e.preventDefault();
     if (!newAddr.name || !newAddr.address) return;
+    const entry = {
+      id: newAddr.id || Date.now(),
+      tag: newAddr.tag || 'Home',
+      name: newAddr.name,
+      phone: newAddr.phone || '',
+      address: newAddr.address,
+      city: newAddr.city || '',
+      postalCode: newAddr.postalCode || '',
+      email: newAddr.email || '',
+      isDefault: addresses.length === 0
+    };
     const updated = newAddr.id
-      ? addresses.map(a => a.id === newAddr.id ? { ...a, ...newAddr } : a)
-      : [...addresses, { id: Date.now(), tag: newAddr.tag || 'Home', name: newAddr.name, address: newAddr.address, phone: newAddr.phone || '', isDefault: addresses.length === 0 }];
+      ? addresses.map(a => a.id === newAddr.id ? { ...a, ...entry } : a)
+      : [...addresses, entry];
     addToast(newAddr.id ? 'Address updated successfully' : 'New address added and saved', 'success');
     setAddresses(updated);
     localStorage.setItem('sparkroot_user_addresses', JSON.stringify(updated));
-    if (updated.length > 0) setUser(prev => ({ ...prev, address: updated[0].address, phone: updated[0].phone || prev.phone }));
-    setNewAddr({ tag: 'Home', name: '', address: '', phone: '' });
+    if (updated.length > 0) {
+      setUser(prev => ({
+        ...prev,
+        name: updated[0].name || prev.name,
+        address: updated[0].address || prev.address,
+        phone: updated[0].phone || prev.phone,
+        email: updated[0].email || prev.email
+      }));
+    }
+    setNewAddr({ tag: 'Home', name: '', phone: '', address: '', city: '', postalCode: '', email: '' });
     setShowAddAddressModal(false);
   };
 

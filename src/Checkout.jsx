@@ -31,6 +31,8 @@ export default function Checkout() {
       let initialName = '';
       let initialEmail = '';
       let initialAddress = '';
+      let initialCity = '';
+      let initialPostalCode = '';
       let initialPhone = '';
 
       try {
@@ -47,6 +49,9 @@ export default function Checkout() {
           if (Array.isArray(addrs) && addrs.length > 0) {
             if (addrs[0].name) initialName = addrs[0].name;
             if (addrs[0].address) initialAddress = addrs[0].address;
+            if (addrs[0].city) initialCity = addrs[0].city;
+            if (addrs[0].postalCode) initialPostalCode = addrs[0].postalCode;
+            if (addrs[0].email) initialEmail = addrs[0].email;
             if (addrs[0].phone && addrs[0].phone !== '03467921114' && addrs[0].phone !== 'Not Added') initialPhone = addrs[0].phone;
           }
         }
@@ -57,8 +62,8 @@ export default function Checkout() {
       setFormData({
         fullName: initialName,
         address: initialAddress,
-        city: '',
-        postalCode: '',
+        city: initialCity,
+        postalCode: initialPostalCode,
         phone: initialPhone,
         email: initialEmail
       });

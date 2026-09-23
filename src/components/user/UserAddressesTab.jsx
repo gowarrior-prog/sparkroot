@@ -62,7 +62,13 @@ export default function UserAddressesTab({ addresses, setShowAddAddressModal, ha
 
               <h4 className="font-extrabold text-sm text-slate-900">{addr.name}</h4>
               <p className="text-xs text-gray-600 leading-relaxed font-medium">{addr.address}</p>
-              {addr.phone && <p className="text-[11px] text-gray-400 font-semibold">Phone: {addr.phone}</p>}
+              {(addr.city || addr.postalCode) && (
+                <p className="text-[11px] text-gray-500 font-semibold">
+                  {addr.city}{addr.city && addr.postalCode ? ` - ` : ''}{addr.postalCode ? `Postal Code: ${addr.postalCode}` : ''}
+                </p>
+              )}
+              {addr.phone && <p className="text-[11px] text-gray-500 font-semibold">Phone: {addr.phone}</p>}
+              {addr.email && <p className="text-[11px] text-gray-400 font-medium">Email: {addr.email}</p>}
             </div>
           ))}
         </div>

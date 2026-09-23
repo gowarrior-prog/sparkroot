@@ -113,29 +113,6 @@ export default function ProductInfo({
 
       <div className="space-y-4 pt-4 border-t border-slate-200">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-700">Quantity:</span>
-            <div className="flex items-center border border-slate-200 rounded-lg bg-white p-0.5">
-              <button
-                type="button"
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                disabled={quantity <= 1 || !isStockAvailable}
-                className="w-8 h-8 rounded flex items-center justify-center text-slate-500 hover:bg-slate-100 disabled:opacity-40 transition cursor-pointer"
-              >
-                <Minus size={13} />
-              </button>
-              <span className="w-8 text-center font-bold text-sm text-black">{quantity}</span>
-              <button
-                type="button"
-                onClick={() => setQuantity((q) => q + 1)}
-                disabled={!isStockAvailable}
-                className="w-8 h-8 rounded flex items-center justify-center text-slate-500 hover:bg-slate-100 disabled:opacity-40 transition cursor-pointer"
-              >
-                <Plus size={13} />
-              </button>
-            </div>
-          </div>
-
           {isStockAvailable ? (
             <span className="text-[11px] text-emerald-700 font-bold uppercase tracking-wider flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />

@@ -67,7 +67,6 @@ function ProductCard({ product, onBuyNow, onAddToCart, onLike, isLiked }) {
         {/* Price in PKR */}
         <div className="flex items-center gap-2">
           <span className="text-xs sm:text-sm font-bold text-slate-900">PKR {Number(product.price).toLocaleString('en-PK')}</span>
-          <span className="text-[11px] text-gray-400 line-through">PKR {Math.round(Number(product.price) * 1.25).toLocaleString('en-PK')}</span>
         </div>
       </div>
 
