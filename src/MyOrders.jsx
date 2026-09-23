@@ -63,11 +63,11 @@ export default function MyOrders() {
     if (!newAddr.name || !newAddr.address) return;
     const updated = newAddr.id
       ? addresses.map(a => a.id === newAddr.id ? { ...a, ...newAddr } : a)
-      : [...addresses, { id: Date.now(), tag: newAddr.tag || 'Home', name: newAddr.name, address: newAddr.address, phone: newAddr.phone || '03467921114', isDefault: addresses.length === 0 }];
+      : [...addresses, { id: Date.now(), tag: newAddr.tag || 'Home', name: newAddr.name, address: newAddr.address, phone: newAddr.phone || '', isDefault: addresses.length === 0 }];
     addToast(newAddr.id ? 'Address updated successfully' : 'New address added and saved', 'success');
     setAddresses(updated);
     localStorage.setItem('sparkroot_user_addresses', JSON.stringify(updated));
-    if (updated.length > 0) setUser(prev => ({ ...prev, address: updated[0].address, phone: updated[0].phone || '03467921114' }));
+    if (updated.length > 0) setUser(prev => ({ ...prev, address: updated[0].address, phone: updated[0].phone || prev.phone }));
     setNewAddr({ tag: 'Home', name: '', address: '', phone: '' });
     setShowAddAddressModal(false);
   };
@@ -79,7 +79,7 @@ export default function MyOrders() {
     setAddresses(updated);
     localStorage.setItem('sparkroot_user_addresses', JSON.stringify(updated));
     if (updated.length > 0) {
-      setUser(prev => ({ ...prev, address: updated[0].address, phone: updated[0].phone || '03467921114' }));
+      setUser(prev => ({ ...prev, address: updated[0].address, phone: updated[0].phone || prev.phone }));
     } else {
       setUser(prev => ({ ...prev, address: 'Not Added', phone: 'Not Added' }));
     }
@@ -92,9 +92,9 @@ export default function MyOrders() {
 
   const navMenuItems = [
     { id: 'account', label: 'My Account', icon: <User size={18} /> },
-    { id: 'orders', label: 'My Orders', icon: <Package size={18} /> },
-    { id: 'wishlist', label: 'Wishlist', icon: <Heart size={18} /> },
-    { id: 'addresses', label: 'Addresses', icon: <MapPin size={18} /> },
+    { id: 'orders', label: 'My Orders', icon: <Package size={18} />, count: orders.length },
+    { id: 'wishlist', label: 'Wishlist', icon: <Heart size={18} />, count: wishlistArray.length },
+    { id: 'addresses', label: 'Addresses', icon: <MapPin size={18} />, count: addresses.length },
     { id: 'support', label: 'Help & Support', icon: <Headset size={18} /> }
   ];
 

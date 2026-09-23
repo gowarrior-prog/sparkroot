@@ -21,7 +21,7 @@ const formatProduct = (p) => {
     images: Array.isArray(p.images) ? p.images.map(img => img.url || img) : [],
     sizesList,
     colorsList,
-    reviews: Array.isArray(p.reviews) ? p.reviews : []
+    reviews: Array.isArray(p.reviews) ? p.reviews.filter(r => !r.comment || !r.comment.includes('[CONTACT MESSAGE]')) : []
   };
 };
 

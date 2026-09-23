@@ -31,7 +31,7 @@ export default function Checkout() {
       let initialName = '';
       let initialEmail = '';
       let initialAddress = '';
-      let initialPhone = '03467921114';
+      let initialPhone = '';
 
       try {
         const uStr = localStorage.getItem('user');

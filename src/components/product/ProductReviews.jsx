@@ -15,9 +15,10 @@ export default function ProductReviews({ productId, reviews = [], onReviewSubmit
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
 
-  const totalReviews = reviews.length;
+  const productReviewsList = (reviews || []).filter(r => !r.comment || !r.comment.includes('[CONTACT MESSAGE]'));
+  const totalReviews = productReviewsList.length;
   const avgRating = totalReviews > 0
-    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1)
+    ? (productReviewsList.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1)
     : '5.0';
 
   const handleSubmit = async (e) => {
@@ -82,9 +83,9 @@ export default function ProductReviews({ productId, reviews = [], onReviewSubmit
         </button>
       </div>
 
-      <ReviewStatsCard avgRating={avgRating} totalReviews={totalReviews} reviews={reviews} />
+      <ReviewStatsCard avgRating={avgRating} totalReviews={totalReviews} reviews={productReviewsList} />
 
-      {reviews.length === 0 ? (
+      {productReviewsList.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-8 shadow-xs">
           <MessageSquare size={36} className="mx-auto text-slate-300 mb-3" />
           <h3 className="text-base font-bold text-black mb-1">Be the first to review this product!</h3>
@@ -101,7 +102,7 @@ export default function ProductReviews({ productId, reviews = [], onReviewSubmit
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          {reviews.map((rev) => (
+          {productReviewsList.map((rev) => (
             <div
               key={rev.id}
               className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-md transition duration-300"

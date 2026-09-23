@@ -35,7 +35,7 @@ export default function UserSupportWishlistTabs({ activeTab, user, wishlistCount
       setFormData({
         name: user.name || '',
         email: user.email || '',
-        phone: user.phone || '03467921114',
+        phone: (user.phone && user.phone !== 'Not Added') ? user.phone : '',
         address: user.address || '',
         message: ''
       });

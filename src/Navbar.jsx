@@ -340,7 +340,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        <div className="bg-black text-white px-4 sm:px-8 py-2 relative">
+        <div className="hidden md:block bg-black text-white px-4 sm:px-8 py-2 relative">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="relative hidden md:block" ref={dropdownRef}>
               <button

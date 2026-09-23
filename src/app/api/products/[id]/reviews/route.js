@@ -9,7 +9,7 @@ export async function GET(request, { params }) {
       orderBy: { createdAt: 'desc' }
     });
 
-    reviews = reviews.filter(r => !r.comment || !r.comment.startsWith('[CONTACT MESSAGE]'));
+    reviews = reviews.filter(r => !r.comment || !r.comment.includes('[CONTACT MESSAGE]'));
     return NextResponse.json(reviews);
   } catch (error) {
     console.error('Error fetching reviews:', error);

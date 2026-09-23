@@ -31,14 +31,21 @@ export default function UserNavSidebar({ user, activeTab, setActiveTab, navMenuI
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200 cursor-pointer ${
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200 cursor-pointer ${
                   isActive
                     ? 'bg-slate-950 text-white shadow-sm'
                     : 'text-slate-600 hover:bg-[#f4f4f6] hover:text-slate-900'
                 }`}
               >
-                {item.icon}
-                <span>{item.label}</span>
+                <div className="flex items-center gap-3">
+                  {item.icon}
+                  <span>{item.label}</span>
+                </div>
+                {item.count !== undefined && item.count > 0 && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${isActive ? 'bg-amber-400 text-black' : 'bg-slate-100 text-slate-900 border border-slate-200'}`}>
+                    {item.count}
+                  </span>
+                )}
               </button>
             );
           })}
