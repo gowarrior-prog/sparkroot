@@ -9,18 +9,20 @@ export async function PATCH(request, context) {
     const body = await request.json();
     const { status } = body;
 
-    // Try DB update
+    const numId = Number(id);
+
     try {
       await prisma.order.update({
-        where: { id: Number(id) || id },
+        where: { id: !isNaN(numId) ? numId : id },
         data: { status }
       });
-    } catch {
-      // Fallback in memory
-      updateMemoryOrderStatus(id, status);
+    } catch (e) {
+      console.warn('Prisma update order status warning:', e.message);
     }
 
-    return NextResponse.json({ success: true });
+    updateMemoryOrderStatus(id, status);
+
+    return NextResponse.json({ success: true, message: 'Status updated' });
   } catch (error) {
     console.error('Update order status error:', error);
     return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });
@@ -31,16 +33,19 @@ export async function DELETE(request, context) {
   try {
     const params = await context.params;
     const { id } = params;
+    const numId = Number(id);
 
     try {
       await prisma.order.delete({
-        where: { id: Number(id) || id }
+        where: { id: !isNaN(numId) ? numId : id }
       });
-    } catch {
-      deleteMemoryOrder(id);
+    } catch (e) {
+      console.warn('Prisma delete order warning:', e.message);
     }
 
-    return NextResponse.json({ success: true });
+    deleteMemoryOrder(id);
+
+    return NextResponse.json({ success: true, message: 'Order deleted' });
   } catch (error) {
     console.error('Delete order error:', error);
     return NextResponse.json({ error: 'Failed to delete order' }, { status: 500 });

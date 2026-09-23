@@ -35,3 +35,20 @@ export async function GET() {
     return NextResponse.json(memoryOrders);
   }
 }
+
+export async function DELETE() {
+  try {
+    const { clearAllMemoryOrders } = await import('../../../../lib/orderStore.js');
+    try {
+      await prisma.order.deleteMany({});
+    } catch (e) {
+      console.warn('Prisma delete all orders warning:', e.message);
+    }
+    clearAllMemoryOrders();
+    return NextResponse.json({ success: true, message: 'All orders and sales revenue cleared' });
+  } catch (error) {
+    console.error('Delete all orders error:', error);
+    return NextResponse.json({ error: 'Failed to reset orders' }, { status: 500 });
+  }
+}
+

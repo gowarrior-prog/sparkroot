@@ -1,7 +1,9 @@
 'use client';
 
-import { Clock, Trash2 } from 'lucide-react';
+import React from 'react';
+import { Clock, Trash2, AlertTriangle } from 'lucide-react';
 import { API } from '../api';
+import OrderTimerBanner from '../components/user/OrderTimerBanner';
 
 export default function AdminOrders({ orders, onRefresh, getAuthHeaders, handleAuthError }) {
   const updateStatus = async (id, status) => {
@@ -15,6 +17,33 @@ export default function AdminOrders({ orders, onRefresh, getAuthHeaders, handleA
     onRefresh();
   };
 
+  const deleteSingleOrder = async (id) => {
+    if (!window.confirm(`Are you sure you want to permanently delete Order #${id}?`)) return;
+    const res = await fetch(`${API}/admin/orders/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    handleAuthError(res.status);
+    try {
+      const local = JSON.parse(localStorage.getItem('sparkroot_user_orders') || '[]');
+      const updated = local.filter(o => String(o.id) !== String(id));
+      localStorage.setItem('sparkroot_user_orders', JSON.stringify(updated));
+    } catch {}
+    onRefresh();
+  };
+
+  const clearAllOrders = async () => {
+    if (!window.confirm('WARNING: Are you sure you want to delete ALL orders and reset Sales Revenue? This action cannot be undone.')) return;
+    const res = await fetch(`${API}/admin/orders`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    handleAuthError(res.status);
+    localStorage.removeItem('sparkroot_user_orders');
+    localStorage.removeItem('sparkroot_orders');
+    onRefresh();
+  };
+
   const statusClass = (status) => ({
     'Canceled':  'bg-red-50 text-red-600 border-red-200',
     'confirmed': 'bg-indigo-50 text-indigo-600 border-indigo-200',
@@ -24,7 +53,22 @@ export default function AdminOrders({ orders, onRefresh, getAuthHeaders, handleA
 
   return (
     <div className="space-y-6">
-      <h3 className="text-sm font-bold uppercase tracking-widest">Order History</h3>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200">
+        <div>
+          <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900">Order Management & Sales History</h3>
+          <p className="text-xs text-slate-500">Manage client orders, status confirmation timers, and sales data.</p>
+        </div>
+        {orders.length > 0 && (
+          <button
+            onClick={clearAllOrders}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center gap-2 shadow-xs cursor-pointer"
+          >
+            <AlertTriangle size={15} />
+            <span>Reset All Sales & Clear Orders</span>
+          </button>
+        )}
+      </div>
+
       <div className="space-y-4">
         {orders.map(o => {
           const parsedItems = typeof o.items === 'string'
@@ -32,46 +76,55 @@ export default function AdminOrders({ orders, onRefresh, getAuthHeaders, handleA
             : (Array.isArray(o.items) ? o.items : []);
 
           return (
-            <div key={o.id} className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm">
+            <div key={o.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs space-y-3 p-4">
+              <OrderTimerBanner order={o} onAutoConfirm={(id) => updateStatus(id, 'confirmed')} />
+
               {/* Order Header */}
-              <div className="px-6 py-4 flex flex-wrap items-center justify-between gap-4 border-b border-slate-100">
+              <div className="pt-2 flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-4">
                   <span className="text-slate-500 text-xs font-mono font-bold">#{o.id}</span>
                   <div>
-                    <p className="font-bold text-sm text-black">{o.user?.name || 'Guest'}</p>
+                    <p className="font-bold text-sm text-black">{o.user?.name || 'Customer'}</p>
                     <p className="text-xs text-slate-500 font-medium">{o.email || o.user?.email}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 flex-wrap">
-                  <span className={`px-2 py-1 rounded-sm text-[10px] font-bold uppercase border flex items-center gap-1 tracking-widest ${statusClass(o.status)}`}>
-                    {o.status === 'Canceled' ? <Trash2 size={12} /> : <Clock size={12} />} {o.status}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase border flex items-center gap-1 tracking-widest ${statusClass(o.status)}`}>
+                    {o.status === 'Canceled' ? <Trash2 size={12} /> : <Clock size={12} />} {o.status || 'Pending'}
                   </span>
-                  <span className="font-black text-black text-sm">PKR {o.total.toLocaleString()}</span>
-                  <span className="text-slate-400 text-xs font-medium">{new Date(o.createdAt).toLocaleDateString()}</span>
+                  <span className="font-black text-black text-sm">PKR {Number(o.total || o.price || 0).toLocaleString('en-PK')}</span>
+                  <span className="text-slate-400 text-xs font-medium">{new Date(o.createdAt || Date.now()).toLocaleDateString('en-PK')}</span>
                   {o.status === 'pending' && (
                     <button
                       onClick={() => updateStatus(o.id, 'confirmed')}
-                      className="ml-2 bg-black hover:bg-slate-800 text-white px-3 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-widest transition"
+                      className="bg-black hover:bg-slate-800 text-amber-300 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition cursor-pointer"
                     >
-                      Confirm
+                      Confirm Order
                     </button>
                   )}
+                  <button
+                    onClick={() => deleteSingleOrder(o.id)}
+                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition border border-gray-200 cursor-pointer"
+                    title="Delete Order"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
 
               {/* Delivery Info */}
               {(o.address || o.phone) && (
-                <div className="px-6 py-3 bg-slate-50/50 border-b border-slate-100 flex flex-wrap gap-6">
+                <div className="px-4 py-2 bg-slate-50/70 rounded-lg border border-slate-100 flex flex-wrap gap-6 text-xs">
                   {o.address && (
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Address</p>
-                      <p className="text-sm font-medium text-black">{o.address}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Delivery Address</p>
+                      <p className="font-medium text-slate-900">{o.address}</p>
                     </div>
                   )}
                   {o.phone && (
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Phone</p>
-                      <p className="text-sm font-medium text-black">{o.phone}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Phone Number</p>
+                      <p className="font-medium text-slate-900">{o.phone}</p>
                     </div>
                   )}
                 </div>
@@ -79,23 +132,21 @@ export default function AdminOrders({ orders, onRefresh, getAuthHeaders, handleA
 
               {/* Order Items */}
               {parsedItems.length > 0 && (
-                <div className="px-6 py-3">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Items ({parsedItems.length})</p>
+                <div className="pt-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Order Items ({parsedItems.length})</p>
                   <div className="space-y-2">
                     {parsedItems.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-sm px-3 py-2">
+                      <div key={idx} className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2">
                         {item.image && (
-                          <img src={item.image} alt={item.name} className="w-10 h-10 rounded-sm object-cover border border-slate-200 flex-shrink-0" onError={e => { e.target.onerror = null; e.target.style.display = 'none'; }} />
+                          <img src={item.image} alt={item.name} className="w-10 h-10 rounded-md object-contain border border-slate-200 shrink-0 bg-white" onError={e => { e.target.onerror = null; e.target.style.display = 'none'; }} />
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-black truncate">{item.name}</p>
-                          <p className="text-xs text-slate-500">
-                            Qty: {item.quantity} × PKR {Number(item.price).toLocaleString()}
-                            {item.size && <span className="ml-2 font-semibold text-black">• Size: {item.size}</span>}
-                            {item.color && <span className="ml-2 font-semibold text-black">• Color: {item.color}</span>}
+                          <p className="text-xs font-bold text-slate-900 truncate">{item.name || 'Product Item'}</p>
+                          <p className="text-[11px] text-slate-500">
+                            Qty: {item.quantity || 1} × PKR {Number(item.price || 0).toLocaleString('en-PK')}
                           </p>
                         </div>
-                        <p className="text-sm font-black text-black flex-shrink-0">PKR {(item.price * item.quantity).toLocaleString()}</p>
+                        <p className="text-xs font-extrabold text-slate-900 shrink-0">PKR {((item.price || 0) * (item.quantity || 1)).toLocaleString('en-PK')}</p>
                       </div>
                     ))}
                   </div>
@@ -105,7 +156,7 @@ export default function AdminOrders({ orders, onRefresh, getAuthHeaders, handleA
           );
         })}
         {orders.length === 0 && (
-          <div className="bg-white border border-slate-200 rounded-md text-center py-12 text-slate-500 font-medium">No orders placed yet.</div>
+          <div className="bg-white border border-slate-200 rounded-xl text-center py-12 text-slate-500 font-medium">No orders found.</div>
         )}
       </div>
     </div>

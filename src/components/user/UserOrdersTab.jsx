@@ -1,7 +1,20 @@
 import React from 'react';
-import { Package, Truck, Clock } from 'lucide-react';
+import { Package, Truck } from 'lucide-react';
+import OrderTimerBanner from './OrderTimerBanner';
+import { API } from '../../api';
 
 export default function UserOrdersTab({ loading, filteredOrders, orderFilter, setOrderFilter, safeFormatPrice, getStatusBadgeClass, onNavigate }) {
+  const handleAutoConfirm = async (orderId) => {
+    try {
+      await fetch(`${API}/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'confirmed' })
+      });
+    } catch (e) {
+      console.warn('Auto confirm sync failed:', e);
+    }
+  };
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:px-6 rounded-2xl border border-gray-200">
@@ -46,6 +59,8 @@ export default function UserOrdersTab({ loading, filteredOrders, orderFilter, se
               key={order.id}
               className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-xs hover:border-gray-300 transition space-y-4"
             >
+              <OrderTimerBanner order={order} onAutoConfirm={handleAutoConfirm} />
+
               <div className="flex flex-wrap justify-between items-center gap-3 pb-4 border-b border-gray-100">
                 <div>
                   <span className="text-xs font-extrabold uppercase tracking-wider text-slate-900 block">

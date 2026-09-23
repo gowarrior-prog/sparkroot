@@ -148,7 +148,7 @@ export default function Navbar() {
                 )}
 
                 {/* Instant Live Dropdown Results right under input box without pressing Enter */}
-                {searchQuery.trim().length > 0 && (
+                {searchQuery.trim().length > 0 && pathname !== '/search' && (
                   <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl max-h-96 overflow-y-auto z-50 p-2 text-slate-900 animate-in fade-in duration-200">
                     <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 text-[10px] font-black uppercase tracking-wider text-slate-400">
                       <span>Live Search Results ({searchResults.length})</span>

@@ -119,19 +119,32 @@ export default function AdminDashboard({ stats, setActiveTab }) {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {cards.map(({ label, value, icon: Icon, hint, bg }) => (
-          <div key={label} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs relative overflow-hidden group hover:shadow-md transition">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{label}</span>
-              <div className={`p-2.5 rounded-xl border ${bg}`}>
-                <Icon size={18} />
+          <div key={label} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs relative overflow-hidden group hover:shadow-md transition flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{label}</span>
+                <div className={`p-2.5 rounded-xl border ${bg}`}>
+                  <Icon size={18} />
+                </div>
               </div>
+              
+              <h3 className="text-3xl font-extrabold text-slate-950 tracking-tight mb-2">{value}</h3>
             </div>
-            
-            <h3 className="text-3xl font-extrabold text-slate-950 tracking-tight mb-2">{value}</h3>
-            
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-              <TrendingUp size={13} className="text-emerald-600" />
-              <span>{hint}</span>
+
+            <div className="flex items-center justify-between gap-1.5 text-xs text-slate-500 font-medium pt-2 border-t border-slate-100 mt-2">
+              <div className="flex items-center gap-1.5">
+                <TrendingUp size={13} className="text-emerald-600" />
+                <span>{hint}</span>
+              </div>
+              {label === 'Total Sales Revenue' && setActiveTab && (
+                <button
+                  onClick={() => setActiveTab('orders')}
+                  className="text-[10px] font-bold uppercase text-red-600 hover:text-red-700 hover:underline cursor-pointer"
+                  title="Reset Revenue via Orders"
+                >
+                  Clear/Reset
+                </button>
+              )}
             </div>
           </div>
         ))}

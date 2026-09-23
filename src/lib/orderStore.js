@@ -77,3 +77,9 @@ export function deleteMemoryOrder(id) {
   }
   return null;
 }
+
+export function clearAllMemoryOrders() {
+  globalForOrders.memoryOrders.length = 0;
+  savePersistedOrders(globalForOrders.memoryOrders);
+}
+
