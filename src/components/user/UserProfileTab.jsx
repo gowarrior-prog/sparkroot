@@ -12,6 +12,9 @@ export default function UserProfileTab({ user, ordersCount, wishlistCount, addre
 
   const [editName, setEditName] = useState(user.name || '');
   const [editEmail, setEditEmail] = useState(user.email || '');
+  const [editPhone, setEditPhone] = useState(user.phone || '');
+  const [editAddress, setEditAddress] = useState(user.address || '');
+  const [editCity, setEditCity] = useState(user.city || '');
   const [newPassword, setNewPassword] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -29,6 +32,9 @@ export default function UserProfileTab({ user, ordersCount, wishlistCount, addre
           name: editName,
           email: user.email,
           newEmail: editEmail !== user.email ? editEmail : undefined,
+          phone: editPhone,
+          address: editAddress,
+          city: editCity,
           password: newPassword.trim().length >= 6 ? newPassword : undefined
         })
       });
@@ -40,14 +46,19 @@ export default function UserProfileTab({ user, ordersCount, wishlistCount, addre
         return;
       }
 
-      if (data.user) {
-        const updated = { ...user, name: data.user.name, email: data.user.email };
-        if (setUser) setUser(updated);
-        localStorage.setItem('user', JSON.stringify(updated));
-        if (data.token) localStorage.setItem('token', data.token);
-      }
+      const updated = {
+        ...user,
+        name: data.user?.name || editName,
+        email: data.user?.email || editEmail,
+        phone: editPhone,
+        address: editAddress,
+        city: editCity
+      };
+      if (setUser) setUser(updated);
+      localStorage.setItem('user', JSON.stringify(updated));
+      if (data.token) localStorage.setItem('token', data.token);
 
-      setSuccessMsg('Profile and credentials updated successfully!');
+      setSuccessMsg('Profile and details updated successfully!');
       if (addToast) addToast('Profile details updated!', 'success');
       setNewPassword('');
       setIsEditing(false);
@@ -80,14 +91,6 @@ export default function UserProfileTab({ user, ordersCount, wishlistCount, addre
               </p>
             </div>
           </div>
-
-          <button
-            onClick={() => setIsEditing(!isEditing)}
-            className="px-4 py-2 bg-slate-950 hover:bg-slate-800 text-amber-300 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 shadow-xs cursor-pointer"
-          >
-            {isEditing ? <X size={15} /> : <Edit3 size={15} />}
-            <span>{isEditing ? 'Cancel Edit' : 'Edit Profile Credentials'}</span>
-          </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
@@ -146,10 +149,19 @@ export default function UserProfileTab({ user, ordersCount, wishlistCount, addre
       {/* Edit Form or View Personal Details */}
       {isEditing ? (
         <form onSubmit={handleProfileSave} className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-4">
-          <h3 className="text-base font-bold text-slate-900 border-b border-gray-100 pb-3 flex items-center gap-2">
-            <Lock size={18} className="text-amber-500" />
-            <span>Update Account Credentials & Security</span>
-          </h3>
+          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Edit3 size={18} className="text-black" />
+              <span>Edit Personal Details & Profile Info</span>
+            </h3>
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="text-xs font-bold text-slate-500 hover:text-black flex items-center gap-1 cursor-pointer"
+            >
+              <X size={16} /> Cancel
+            </button>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
@@ -174,6 +186,39 @@ export default function UserProfileTab({ user, ordersCount, wishlistCount, addre
               />
             </div>
 
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Phone Number</label>
+              <input
+                type="text"
+                placeholder="e.g. +92 300 1234567"
+                value={editPhone}
+                onChange={(e) => setEditPhone(e.target.value)}
+                className="w-full text-xs p-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">City / Port Code</label>
+              <input
+                type="text"
+                placeholder="e.g. Lahore / 54000"
+                value={editCity}
+                onChange={(e) => setEditCity(e.target.value)}
+                className="w-full text-xs p-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Primary Delivery Address</label>
+              <input
+                type="text"
+                placeholder="e.g. House #12, Street 4, Model Town"
+                value={editAddress}
+                onChange={(e) => setEditAddress(e.target.value)}
+                className="w-full text-xs p-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+
             <div className="sm:col-span-2">
               <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">
                 New Password <span className="text-gray-400 font-normal">(Leave blank to keep current password)</span>
@@ -192,7 +237,7 @@ export default function UserProfileTab({ user, ordersCount, wishlistCount, addre
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="px-5 py-2.5 bg-gray-100 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-gray-200 transition"
+              className="px-5 py-2.5 bg-gray-100 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-gray-200 transition cursor-pointer"
             >
               Cancel
             </button>
@@ -212,7 +257,7 @@ export default function UserProfileTab({ user, ordersCount, wishlistCount, addre
             <h3 className="text-base font-bold text-slate-900">Personal Details</h3>
             <button
               onClick={() => setIsEditing(true)}
-              className="text-xs font-bold text-slate-700 hover:text-black flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-slate-700 hover:text-black flex items-center gap-1 cursor-pointer bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition"
             >
               <Edit3 size={14} /> Edit
             </button>
@@ -221,15 +266,17 @@ export default function UserProfileTab({ user, ordersCount, wishlistCount, addre
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="p-3 bg-[#f4f4f6] rounded-2xl">
               <span className="text-gray-400 font-bold block uppercase text-[10px]">Email Address</span>
-              <span className="font-bold text-slate-900">{user.email}</span>
+              <span className="font-bold text-slate-900">{user.email || 'Not Added'}</span>
             </div>
             <div className="p-3 bg-[#f4f4f6] rounded-2xl">
               <span className="text-gray-400 font-bold block uppercase text-[10px]">Phone Number</span>
-              <span className="font-bold text-slate-900">{user.phone}</span>
+              <span className="font-bold text-slate-900">{user.phone || 'Not Added'}</span>
             </div>
             <div className="p-3 bg-[#f4f4f6] rounded-2xl sm:col-span-2">
               <span className="text-gray-400 font-bold block uppercase text-[10px]">Primary Delivery Address</span>
-              <span className="font-bold text-slate-900">{user.address}</span>
+              <span className="font-bold text-slate-900">
+                {user.address ? `${user.address}${user.city ? `, ${user.city}` : ''}` : 'Not Added'}
+              </span>
             </div>
           </div>
         </div>
