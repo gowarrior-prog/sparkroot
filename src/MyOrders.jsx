@@ -186,6 +186,7 @@ export default function MyOrders() {
               {(activeTab === 'wishlist' || activeTab === 'support') && (
                 <UserSupportWishlistTabs
                   activeTab={activeTab}
+                  user={user}
                   wishlistCount={wishlistArray.length}
                   onNavigate={navigate}
                 />

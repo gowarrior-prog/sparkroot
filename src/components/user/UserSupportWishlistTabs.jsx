@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Heart, Headset, Phone, Mail, Clock, Send, ShoppingCart, Zap, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Heart, Headset, Phone, Mail, Clock, Send, ShoppingCart, Zap, X, CheckCircle2, User, MapPin } from 'lucide-react';
 import { useCart } from '../../CartContext';
 import { useToast } from '../ToastProvider';
+import { API } from '../../api';
 
-export default function UserSupportWishlistTabs({ activeTab, wishlistCount, onNavigate }) {
-  const [isMounted, setIsMounted] = React.useState(false);
+export default function UserSupportWishlistTabs({ activeTab, user, wishlistCount, onNavigate }) {
+  const [isMounted, setIsMounted] = useState(false);
   const cartContext = useCart() || {};
   const likedProducts = cartContext.likedProducts || {};
   const likedProductsData = cartContext.likedProductsData || {};
@@ -16,13 +17,67 @@ export default function UserSupportWishlistTabs({ activeTab, wishlistCount, onNa
   const toastContext = useToast() || {};
   const addToast = toastContext.addToast || (() => {});
 
-  const [supportMessage, setSupportMessage] = useState('');
-  const [supportSubject, setSupportSubject] = useState('');
-  const [sentSuccess, setSentSuccess] = useState(false);
+  // 5 Form Fields identical to Contact Form
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    message: ''
+  });
 
-  React.useEffect(() => {
+  const [loading, setLoading] = useState(false);
+  const [submittedData, setSubmittedData] = useState(null);
+
+  useEffect(() => {
     setIsMounted(true);
-  }, []);
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '03467921114',
+        address: user.address || '',
+        message: ''
+      });
+    }
+  }, [user]);
+
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSupportSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email || !formData.message) {
+      if (addToast) addToast('Please fill in Name, Email, and Message.', 'delete');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Post to /api/contact matching Contact Form process exactly
+      const res = await fetch(`${API}/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (res.ok) {
+        setSubmittedData({ ...formData, createdAt: new Date().toLocaleString() });
+        if (addToast) addToast('Your support inquiry has been sent to SparkRoot Concierge!', 'success', 'Message Sent');
+        setFormData(prev => ({ ...prev, message: '' }));
+      } else {
+        const data = await res.json();
+        if (addToast) addToast(data.error || 'Failed to send message.', 'delete');
+      }
+    } catch (err) {
+      console.error('Contact support error:', err);
+      if (addToast) addToast('Network error sending inquiry.', 'delete');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const likedIds = isMounted ? Object.keys(likedProducts || {}).filter(id => likedProducts[id]) : [];
   const likedItems = likedIds.map(id => likedProductsData?.[id] || {
@@ -31,16 +86,6 @@ export default function UserSupportWishlistTabs({ activeTab, wishlistCount, onNa
     price: 0,
     image: '/images/categories/electronics.png'
   });
-
-  const handleSupportSubmit = (e) => {
-    e.preventDefault();
-    if (!supportMessage) return;
-    setSentSuccess(true);
-    addToast('Support inquiry sent successfully! Our concierge will contact you within 1 hour.', 'success');
-    setSupportMessage('');
-    setSupportSubject('');
-    setTimeout(() => setSentSuccess(false), 5000);
-  };
 
   if (activeTab === 'wishlist') {
     return (
@@ -65,7 +110,7 @@ export default function UserSupportWishlistTabs({ activeTab, wishlistCount, onNa
             <p className="text-xs text-slate-500 mt-1 mb-5">Browse our catalog to save your favorite products.</p>
             <button
               onClick={() => onNavigate('/')}
-              className="px-6 py-2.5 bg-black text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-slate-800 transition"
+              className="px-6 py-2.5 bg-black text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-slate-800 transition cursor-pointer"
             >
               Explore Products
             </button>
@@ -79,7 +124,7 @@ export default function UserSupportWishlistTabs({ activeTab, wishlistCount, onNa
                     <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                     <button
                       onClick={() => toggleLike(item.id)}
-                      className="absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur-sm rounded-full text-slate-700 hover:text-rose-600 transition shadow-xs"
+                      className="absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur-sm rounded-full text-slate-700 hover:text-rose-600 transition shadow-xs cursor-pointer"
                       title="Remove"
                     >
                       <X size={14} />
@@ -94,9 +139,9 @@ export default function UserSupportWishlistTabs({ activeTab, wishlistCount, onNa
                   <button
                     onClick={() => {
                       addToCart(item);
-                      addToast('Added to Cart', 'success');
+                      if (addToast) addToast('Added to Cart', 'success');
                     }}
-                    className="flex-1 py-2 bg-slate-950 text-amber-300 font-bold text-[11px] uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 hover:bg-slate-800 transition"
+                    className="flex-1 py-2 bg-slate-950 text-amber-300 font-bold text-[11px] uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 hover:bg-slate-800 transition cursor-pointer"
                   >
                     <ShoppingCart size={13} />
                     <span>Cart</span>
@@ -106,7 +151,7 @@ export default function UserSupportWishlistTabs({ activeTab, wishlistCount, onNa
                       sessionStorage.setItem('buyNowItem', JSON.stringify({ ...item, quantity: 1, cartKey: `buynow_${item.id}` }));
                       onNavigate('/checkout');
                     }}
-                    className="flex-1 py-2 bg-black text-white font-bold text-[11px] uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 hover:bg-slate-800 transition"
+                    className="flex-1 py-2 bg-black text-white font-bold text-[11px] uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 hover:bg-slate-800 transition cursor-pointer"
                   >
                     <Zap size={13} />
                     <span>Buy</span>
@@ -153,41 +198,125 @@ export default function UserSupportWishlistTabs({ activeTab, wishlistCount, onNa
         </div>
       </div>
 
+      {/* Submitted Inquiry Data Display */}
+      {submittedData && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 space-y-3 animate-fade-in">
+          <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2">
+            <div className="flex items-center gap-2 text-emerald-800 font-extrabold text-sm uppercase tracking-wide">
+              <CheckCircle2 size={18} className="text-emerald-600" />
+              <span>Inquiry Received & Logged</span>
+            </div>
+            <span className="text-[10px] text-emerald-600 font-mono">{submittedData.createdAt}</span>
+          </div>
+
+          <p className="text-xs text-emerald-900 font-medium">
+            Thank you! Your message has been sent to SparkRoot Concierge. Here is the logged inquiry data:
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-white/80 p-4 rounded-xl border border-emerald-200">
+            <div>
+              <span className="text-gray-400 font-bold block uppercase text-[10px]">Client Name</span>
+              <span className="font-extrabold text-slate-900">{submittedData.name}</span>
+            </div>
+            <div>
+              <span className="text-gray-400 font-bold block uppercase text-[10px]">Email Address</span>
+              <span className="font-extrabold text-slate-900">{submittedData.email}</span>
+            </div>
+            <div>
+              <span className="text-gray-400 font-bold block uppercase text-[10px]">Phone Number</span>
+              <span className="font-extrabold text-slate-900">{submittedData.phone || 'N/A'}</span>
+            </div>
+            <div>
+              <span className="text-gray-400 font-bold block uppercase text-[10px]">Address / Subject</span>
+              <span className="font-extrabold text-slate-900">{submittedData.address || 'N/A'}</span>
+            </div>
+            <div className="sm:col-span-2 pt-2 border-t border-gray-100">
+              <span className="text-gray-400 font-bold block uppercase text-[10px]">Message Details</span>
+              <p className="font-medium text-slate-900 mt-0.5 whitespace-pre-wrap">{submittedData.message}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Support Inquiry Form matching Contact Form process */}
       <div className="bg-slate-50 border border-gray-200 rounded-2xl p-6">
         <h3 className="text-sm font-bold uppercase text-slate-900 mb-3">Send Us a Support Message</h3>
-        {sentSuccess && (
-          <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold rounded-xl">
-            ✓ Message received! A support representative will call or email you shortly.
+
+        <form onSubmit={handleSupportSubmit} className="space-y-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Full Name *</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Your full name"
+                className="w-full text-xs p-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-black"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Email Address *</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="your.email@example.com"
+                className="w-full text-xs p-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-black"
+                required
+              />
+            </div>
           </div>
-        )}
-        <form onSubmit={handleSupportSubmit} className="space-y-3">
-          <div>
-            <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Subject / Order ID</label>
-            <input
-              type="text"
-              placeholder="e.g. Order #SR-12345 or Return Request"
-              value={supportSubject}
-              onChange={(e) => setSupportSubject(e.target.value)}
-              className="w-full text-xs p-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-black"
-            />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Phone Number</label>
+              <input
+                type="text"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="+92 346 7921114"
+                className="w-full text-xs p-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Address / Subject</label>
+              <input
+                type="text"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                placeholder="Order #SR-12345 or Delivery Address"
+                className="w-full text-xs p-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
           </div>
+
           <div>
-            <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Message Details</label>
+            <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Message Details *</label>
             <textarea
+              name="message"
               rows={4}
-              placeholder="Describe your question or issue..."
-              value={supportMessage}
-              onChange={(e) => setSupportMessage(e.target.value)}
+              value={formData.message}
+              onChange={handleChange}
+              placeholder="Describe your question, order issue, or feedback..."
               className="w-full text-xs p-3 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-black"
               required
             />
           </div>
+
           <button
             type="submit"
-            className="px-6 py-3 bg-slate-950 text-amber-300 font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-slate-800 transition flex items-center justify-center gap-2 cursor-pointer shadow-md"
+            disabled={loading}
+            className="px-6 py-3 bg-slate-950 text-amber-300 font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-slate-800 transition flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
           >
             <Send size={14} />
-            <span>Submit Inquiry</span>
+            <span>{loading ? 'Sending Message...' : 'Submit Support Inquiry'}</span>
           </button>
         </form>
       </div>
