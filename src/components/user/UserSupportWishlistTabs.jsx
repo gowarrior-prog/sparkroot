@@ -186,7 +186,7 @@ export default function UserSupportWishlistTabs({ activeTab, user, wishlistCount
         <div className="bg-slate-50 border border-gray-200/80 rounded-2xl p-4 flex flex-col items-center text-center">
           <Mail className="text-slate-800 mb-2" size={24} />
           <h4 className="text-xs font-bold uppercase text-slate-900">Email Support</h4>
-          <p className="text-xs font-extrabold text-slate-800 mt-1">support@sparkroot.com</p>
+          <p className="text-xs font-extrabold text-slate-800 mt-1">sparkrootofficial@gmail.com</p>
           <p className="text-[10px] text-slate-400 mt-0.5">Response within 1 hour</p>
         </div>
 
