@@ -54,7 +54,11 @@ export async function GET(request) {
     }
 
     const formatted = products.map(formatProduct);
-    return NextResponse.json(formatted);
+    return NextResponse.json(formatted, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=60'
+      }
+    });
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.json([]);

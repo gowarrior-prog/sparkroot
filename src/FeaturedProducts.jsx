@@ -48,6 +48,8 @@ function ProductCard({ product, onBuyNow, onAddToCart, onLike, isLiked }) {
         <img
           src={product.image}
           alt={product.name}
+          loading="lazy"
+          decoding="async"
           className={`w-full h-full object-contain group-hover:scale-108 transition-transform duration-500 mix-blend-multiply ${!isStockAvailable ? 'opacity-50 grayscale' : ''}`}
           onError={(e) => {
             e.target.onerror = null;

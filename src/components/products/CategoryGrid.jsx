@@ -65,6 +65,8 @@ export default function CategoryGrid({ products, loading, likedProducts, onLike,
               <img
                 src={product.image}
                 alt={product.name}
+                loading="lazy"
+                decoding="async"
                 className={`w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ${!isStockAvailable ? 'opacity-50 grayscale' : ''}`}
                 onError={(e) => {
                   e.target.onerror = null;
