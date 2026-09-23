@@ -6,14 +6,25 @@ import { useCart } from '../../CartContext';
 import { useToast } from '../ToastProvider';
 
 export default function UserSupportWishlistTabs({ activeTab, wishlistCount, onNavigate }) {
-  const { likedProducts, likedProductsData, toggleLike, addToCart } = useCart();
-  const { addToast } = useToast();
-  
+  const [isMounted, setIsMounted] = React.useState(false);
+  const cartContext = useCart() || {};
+  const likedProducts = cartContext.likedProducts || {};
+  const likedProductsData = cartContext.likedProductsData || {};
+  const toggleLike = cartContext.toggleLike || (() => {});
+  const addToCart = cartContext.addToCart || (() => {});
+
+  const toastContext = useToast() || {};
+  const addToast = toastContext.addToast || (() => {});
+
   const [supportMessage, setSupportMessage] = useState('');
   const [supportSubject, setSupportSubject] = useState('');
   const [sentSuccess, setSentSuccess] = useState(false);
 
-  const likedIds = Object.keys(likedProducts || {}).filter(id => likedProducts[id]);
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const likedIds = isMounted ? Object.keys(likedProducts || {}).filter(id => likedProducts[id]) : [];
   const likedItems = likedIds.map(id => likedProductsData?.[id] || {
     id,
     name: `Saved Product #${id}`,
