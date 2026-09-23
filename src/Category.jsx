@@ -16,16 +16,14 @@ export default function Category() {
 
   const filterCategory = (allProds, catSlug) => {
     if (!Array.isArray(allProds) || allProds.length === 0) return [];
-    const lowerSlug = catSlug ? catSlug.toLowerCase() : '';
+    const lowerSlug = catSlug ? catSlug.toLowerCase().trim() : '';
     
     if (lowerSlug === 'shop' || lowerSlug === 'all') return allProds;
 
-    const matched = allProds.filter(p => {
-      const pCat = p.category ? p.category.toLowerCase() : '';
+    return allProds.filter(p => {
+      const pCat = p.category ? p.category.toLowerCase().trim() : '';
       return pCat === lowerSlug || pCat.includes(lowerSlug) || lowerSlug.includes(pCat);
     });
-
-    return matched.length > 0 ? matched : allProds;
   };
 
   const [products, setProducts] = useState([]);

@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "postinstall": "prisma generate",
-    "dev": "next dev",
+    "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3000",
     "vite:dev": "concurrently \"vite\" \"node server.js\"",
     "vite:build": "tsc -b && vite build"
   },

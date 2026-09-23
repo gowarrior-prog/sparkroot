@@ -49,7 +49,7 @@ export default function UserOrdersTab({ loading, filteredOrders, orderFilter, se
               <div className="flex flex-wrap justify-between items-center gap-3 pb-4 border-b border-gray-100">
                 <div>
                   <span className="text-xs font-extrabold uppercase tracking-wider text-slate-900 block">
-                    Order #{order.id}
+                    Order #SR-{String(order.id).replace(/[^a-zA-Z0-9]/g, '').slice(-7).toUpperCase()}
                   </span>
                   <span className="text-[11px] text-gray-400 font-medium">
                     Placed on {new Date(order.createdAt || Date.now()).toLocaleDateString('en-PK', { year: 'numeric', month: 'short', day: 'numeric' })}

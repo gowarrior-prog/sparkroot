@@ -27,6 +27,37 @@ export default function Checkout() {
           setBuyNowItem(null);
         }
       }
+
+      let initialName = '';
+      let initialEmail = '';
+      let initialAddress = '';
+      let initialPhone = '03467921114';
+
+      try {
+        const uStr = localStorage.getItem('user');
+        if (uStr) {
+          const u = JSON.parse(uStr);
+          if (u.name) initialName = u.name;
+          if (u.email) initialEmail = u.email;
+        }
+        const savedAddresses = localStorage.getItem('sparkroot_user_addresses');
+        if (savedAddresses) {
+          const addrs = JSON.parse(savedAddresses);
+          if (Array.isArray(addrs) && addrs.length > 0) {
+            if (addrs[0].name) initialName = addrs[0].name;
+            if (addrs[0].address) initialAddress = addrs[0].address;
+            if (addrs[0].phone) initialPhone = addrs[0].phone;
+          }
+        }
+      } catch (e) {}
+
+      setFormData({
+        fullName: initialName,
+        address: initialAddress,
+        city: '',
+        phone: initialPhone,
+        email: initialEmail
+      });
     }
     setIsLoaded(true);
   }, []);
@@ -65,48 +96,18 @@ export default function Checkout() {
     setIsSubmitting(true);
 
     try {
+      const itemData = checkoutItems.map(i => ({
+        id: i.id, name: i.name, quantity: i.quantity, price: i.price, image: i.image || '', size: i.selectedSize || null, color: i.selectedColor || null
+      }));
+      const fullAddress = `${formData.address}${formData.city ? `, ${formData.city}` : ''}`;
+
       const res = await fetch(`${API}/orders`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({
-          total,
-          items: checkoutItems.map(i => ({
-            id: i.id,
-            name: i.name,
-            quantity: i.quantity,
-            price: i.price,
-            image: i.image || '',
-            size: i.selectedSize || null,
-            color: i.selectedColor || null
-          })),
-          address: `${formData.address}${formData.city ? `, ${formData.city}` : ''}`,
-          phone: formData.phone,
-          email: formData.email
-        })
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ total, items: itemData, address: fullAddress, phone: formData.phone, email: formData.email })
       });
 
-      const placedOrder = {
-        id: Date.now(),
-        userId: 1,
-        total,
-        status: 'pending',
-        items: checkoutItems.map(i => ({
-          id: i.id,
-          name: i.name,
-          quantity: i.quantity,
-          price: i.price,
-          image: i.image || '',
-          size: i.selectedSize || null,
-          color: i.selectedColor || null
-        })),
-        address: `${formData.address}${formData.city ? `, ${formData.city}` : ''}`,
-        phone: formData.phone,
-        email: formData.email,
-        createdAt: new Date().toISOString()
-      };
+      const placedOrder = { id: Date.now(), userId: 1, total, status: 'pending', items: itemData, address: fullAddress, phone: formData.phone, email: formData.email, createdAt: new Date().toISOString() };
       try {
         const local = JSON.parse(localStorage.getItem('sparkroot_user_orders') || '[]');
         local.unshift(placedOrder);

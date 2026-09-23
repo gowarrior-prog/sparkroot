@@ -42,9 +42,9 @@ export default function ShopByCategory() {
       image: 'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400&auto=format&fit=crop&q=80',
     },
     {
-      name: 'Sports',
-      slug: 'sports',
-      image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&auto=format&fit=crop&q=80',
+      name: 'Home & Living',
+      slug: 'home-living',
+      image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&auto=format&fit=crop&q=80',
     },
   ];
 

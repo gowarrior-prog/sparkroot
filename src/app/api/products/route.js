@@ -32,7 +32,14 @@ export async function GET(request) {
     const category = searchParams.get('category');
 
     let whereClause = {};
-    if (search) whereClause.name = { contains: search, mode: 'insensitive' };
+    if (search) {
+      const q = String(search).trim();
+      whereClause.OR = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { description: { contains: q, mode: 'insensitive' } },
+        { category: { contains: q, mode: 'insensitive' } }
+      ];
+    }
     if (category) whereClause.category = category;
 
     let products = [];

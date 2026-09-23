@@ -24,8 +24,8 @@ export default function ContactSidebar() {
           <Phone size={18} className="text-black shrink-0 mt-0.5" />
           <div>
             <span className="font-bold text-slate-900 block">Call / WhatsApp</span>
-            <a href="tel:+923447821114" className="text-gray-600 hover:text-black transition font-semibold">
-              +92 344 7821114
+            <a href="tel:+923467921114" className="text-gray-600 hover:text-black transition font-semibold">
+              +92 346 7921114
             </a>
           </div>
         </div>

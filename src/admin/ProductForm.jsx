@@ -117,8 +117,19 @@ export default function ProductForm({ form, setForm, editingProduct, onClose, on
           <div>
             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Category</label>
             <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="w-full bg-slate-50 border border-slate-200 rounded-sm px-4 py-3 focus:border-black outline-none transition appearance-none font-medium text-sm">
-              {['jewelry', 'cosmetics', 'fashion', 'bags', 'mobile-accessories', 'kitchen-accessories'].map(c => (
-                <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+              {[
+                { slug: 'fashion', label: 'Fashion & Apparel' },
+                { slug: 'electronics', label: 'Electronics' },
+                { slug: 'jewelry', label: 'Jewelry' },
+                { slug: 'cosmetics', label: 'Beauty & Cosmetics' },
+                { slug: 'bags', label: 'Bags' },
+                { slug: 'mens-wear', label: "Men's Wear" },
+                { slug: 'womens-wear', label: "Women's Wear" },
+                { slug: 'home-living', label: 'Home & Living' },
+                { slug: 'toys', label: 'Toys & Games' },
+                { slug: 'other', label: 'Other' }
+              ].map(c => (
+                <option key={c.slug} value={c.slug}>{c.label}</option>
               ))}
             </select>
           </div>

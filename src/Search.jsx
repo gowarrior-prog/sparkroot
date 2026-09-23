@@ -20,45 +20,47 @@ export default function Search() {
     let isMounted = true;
     const fetchSearch = async () => {
       const qLower = query.toLowerCase().trim();
-
-      // 1. Try instant filter from cached products
-      const cached = await getCachedProducts();
-      if (isMounted && Array.isArray(cached) && cached.length > 0) {
-        const localMatches = cached.filter(p =>
-          p.name?.toLowerCase().includes(qLower) ||
-          p.category?.toLowerCase().includes(qLower) ||
-          p.description?.toLowerCase().includes(qLower)
-        );
-        if (localMatches.length > 0) {
-          setProducts(localMatches);
-          setLoading(false);
-          return;
-        }
+      if (!qLower) {
+        setProducts([]);
+        setLoading(false);
+        return;
       }
 
-      // 2. Fetch fresh from API
+      // 1. Instant client-side search across cached products
+      const cached = await getCachedProducts();
+      let localMatches = [];
+      if (Array.isArray(cached) && cached.length > 0) {
+        localMatches = cached.filter(p =>
+          (p.name && p.name.toLowerCase().includes(qLower)) ||
+          (p.category && p.category.toLowerCase().includes(qLower)) ||
+          (p.description && p.description.toLowerCase().includes(qLower))
+        );
+      }
+
+      if (isMounted && localMatches.length > 0) {
+        setProducts(localMatches);
+        setLoading(false);
+      }
+
+      // 2. Fetch API results in background for deep search
       try {
         const res = await fetch(`${API}/products?search=${encodeURIComponent(query)}`);
-        let apiResults = [];
-        if (res.ok) {
-          apiResults = await res.json();
+        if (res.ok && isMounted) {
+          const apiResults = await res.json();
+          if (Array.isArray(apiResults) && apiResults.length > 0) {
+            setProducts(apiResults);
+          } else if (localMatches.length === 0) {
+            setProducts([]);
+          }
         }
-        if (isMounted) setProducts(Array.isArray(apiResults) ? apiResults : []);
       } catch (err) {
         console.error('Search error:', err);
-        if (isMounted) setProducts([]);
       } finally {
         if (isMounted) setLoading(false);
       }
     };
 
-    if (query) {
-      fetchSearch();
-    } else {
-      setProducts([]);
-      setLoading(false);
-    }
-
+    fetchSearch();
     return () => { isMounted = false; };
   }, [query]);
 

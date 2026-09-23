@@ -4,11 +4,12 @@ import { prisma } from '../../../../../../lib/prisma.js';
 export async function GET(request, { params }) {
   try {
     const { id } = await params;
-    const reviews = await prisma.review.findMany({
+    let reviews = await prisma.review.findMany({
       where: { productId: id },
       orderBy: { createdAt: 'desc' }
     });
 
+    reviews = reviews.filter(r => !r.comment || !r.comment.startsWith('[CONTACT MESSAGE]'));
     return NextResponse.json(reviews);
   } catch (error) {
     console.error('Error fetching reviews:', error);

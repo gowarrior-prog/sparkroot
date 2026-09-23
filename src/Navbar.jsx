@@ -41,19 +41,9 @@ export default function Navbar() {
       const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
       if (userStr) setUser(JSON.parse(userStr));
     } catch (e) {}
-  }, []);
-
-  useEffect(() => {
-    getCachedProducts().then((data) => {
-      if (Array.isArray(data)) allProductsCache.current = data;
-    });
-  }, []);
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsCategoryOpen(false);
-      }
+    getCachedProducts().then((data) => { if (Array.isArray(data)) allProductsCache.current = data; });
+    function handleClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsCategoryOpen(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -81,7 +71,7 @@ export default function Navbar() {
     { name: "Women's Wear", icon: <Sparkles size={18} />, slug: 'womens-wear' },
     { name: 'Home & Living', icon: <HomeIcon size={18} />, slug: 'home-living' },
     { name: 'Toys & Games', icon: <Gamepad2 size={18} />, slug: 'toys' },
-    { name: 'Other', icon: <LayoutGrid size={18} />, slug: 'other' },
+    { name: 'Other', icon: <LayoutGrid size={18} />, slug: 'other' }
   ];
 
   return (
@@ -120,8 +110,17 @@ export default function Navbar() {
             </form>
 
             <div className="flex items-center gap-3 sm:gap-5">
+              {user?.role === 'admin' && (
+                <Link
+                  to="/admin"
+                  className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-400 text-black text-[10px] font-extrabold uppercase tracking-wider hover:bg-amber-500 transition shadow-2xs"
+                >
+                  <Sparkles size={12} /> Admin Panel
+                </Link>
+              )}
+
               <Link
-                to={user ? '/my-orders' : '/signin'}
+                to={user ? (user.role === 'admin' ? '/admin' : '/my-orders') : '/signup'}
                 className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 hover:text-black transition cursor-pointer"
               >
                 <User size={18} className="text-slate-700" />

@@ -18,15 +18,7 @@ export default function MyOrders() {
   const [activeTab, setActiveTab] = useState('account');
   const [orderFilter, setOrderFilter] = useState('all');
   
-  const [user, setUser] = useState({
-    name: 'Customer',
-    email: 'Not Logged In',
-    phone: 'Not Added',
-    address: 'Not Added',
-    joined: '2025',
-    role: 'user'
-  });
-
+  const [user, setUser] = useState({ name: 'Customer', email: 'Not Logged In', phone: 'Not Added', address: 'Not Added', joined: '2025', role: 'user' });
   const [addresses, setAddresses] = useState([]);
   const [showAddAddressModal, setShowAddAddressModal] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
@@ -36,38 +28,24 @@ export default function MyOrders() {
   const { addToast } = useToast();
   const { likedProducts, likedProductsData } = useCart();
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-
   const { orders, loading } = useUserOrders(token);
 
-  const safeFormatPrice = (val) => {
-    if (val === undefined || val === null || val === '') return '0';
-    const num = Number(val);
-    if (isNaN(num)) return '0';
-    return num.toLocaleString('en-PK');
-  };
+  const safeFormatPrice = (val) => (val === undefined || val === null || val === '') ? '0' : (isNaN(Number(val)) ? '0' : Number(val).toLocaleString('en-PK'));
 
   useEffect(() => {
     try {
       const uStr = localStorage.getItem('user');
       if (uStr) {
-        const parsed = JSON.parse(uStr);
-        setUser(prev => ({
-          ...prev,
-          name: parsed.name || 'Customer',
-          email: parsed.email || '',
-          phone: parsed.phone || 'Not Added',
-          address: parsed.address || 'Not Added',
-          joined: parsed.joined || '2025',
-          role: parsed.role || 'user'
-        }));
+        const p = JSON.parse(uStr);
+        setUser(prev => ({ ...prev, name: p.name || 'Customer', email: p.email || '', phone: p.phone || 'Not Added', address: p.address || 'Not Added', joined: p.joined || '2025', role: p.role || 'user' }));
       }
-    } catch (e) {}
-
-    try {
       const savedAddresses = localStorage.getItem('sparkroot_user_addresses');
       if (savedAddresses) {
         const parsedAddr = JSON.parse(savedAddresses);
-        if (Array.isArray(parsedAddr)) setAddresses(parsedAddr);
+        if (Array.isArray(parsedAddr) && parsedAddr.length > 0) {
+          setAddresses(parsedAddr);
+          setUser(prev => ({ ...prev, address: parsedAddr[0].address || prev.address, phone: parsedAddr[0].phone || prev.phone }));
+        }
       }
     } catch (e) {}
   }, [token]);
@@ -82,39 +60,33 @@ export default function MyOrders() {
   const handleAddAddress = (e) => {
     e.preventDefault();
     if (!newAddr.name || !newAddr.address) return;
-    const added = {
-      id: Date.now(),
-      tag: newAddr.tag,
-      name: newAddr.name,
-      address: newAddr.address,
-      phone: newAddr.phone || user.phone,
-      isDefault: addresses.length === 0
-    };
-    const updated = [...addresses, added];
+    const updated = newAddr.id
+      ? addresses.map(a => a.id === newAddr.id ? { ...a, ...newAddr } : a)
+      : [...addresses, { id: Date.now(), tag: newAddr.tag || 'Home', name: newAddr.name, address: newAddr.address, phone: newAddr.phone || '03467921114', isDefault: addresses.length === 0 }];
+    addToast(newAddr.id ? 'Address updated successfully' : 'New address added and saved', 'success');
     setAddresses(updated);
     localStorage.setItem('sparkroot_user_addresses', JSON.stringify(updated));
+    if (updated.length > 0) setUser(prev => ({ ...prev, address: updated[0].address, phone: updated[0].phone || '03467921114' }));
     setNewAddr({ tag: 'Home', name: '', address: '', phone: '' });
     setShowAddAddressModal(false);
-    addToast('New address added and saved', 'success');
   };
+
+  const handleEditAddress = (addr) => { setNewAddr(addr); setShowAddAddressModal(true); };
 
   const handleDeleteAddress = (id) => {
     const updated = addresses.filter(a => a.id !== id);
     setAddresses(updated);
     localStorage.setItem('sparkroot_user_addresses', JSON.stringify(updated));
+    if (updated.length > 0) {
+      setUser(prev => ({ ...prev, address: updated[0].address, phone: updated[0].phone || '03467921114' }));
+    } else {
+      setUser(prev => ({ ...prev, address: 'Not Added', phone: 'Not Added' }));
+    }
     addToast('Address removed', 'delete');
   };
 
-  const filteredOrders = orders.filter(o => {
-    if (orderFilter === 'all') return true;
-    return o.status?.toLowerCase() === orderFilter.toLowerCase();
-  });
-
-  const wishlistArray = Object.keys(likedProducts || {})
-    .filter(id => likedProducts[id])
-    .map(id => likedProductsData?.[id] || { id, name: 'Saved Product', price: 0 })
-    .filter(Boolean);
-
+  const filteredOrders = orders.filter(o => orderFilter === 'all' || o.status?.toLowerCase() === orderFilter.toLowerCase());
+  const wishlistArray = Object.keys(likedProducts || {}).filter(id => likedProducts[id]).map(id => likedProductsData?.[id] || { id, name: 'Saved Product', price: 0 }).filter(Boolean);
   const totalSpentAmount = orders.reduce((sum, o) => sum + (Number(o.price || o.total) || 0), 0);
 
   const navMenuItems = [
@@ -122,18 +94,13 @@ export default function MyOrders() {
     { id: 'orders', label: 'My Orders', icon: <Package size={18} /> },
     { id: 'wishlist', label: 'Wishlist', icon: <Heart size={18} /> },
     { id: 'addresses', label: 'Addresses', icon: <MapPin size={18} /> },
-    { id: 'support', label: 'Help & Support', icon: <Headset size={18} /> },
+    { id: 'support', label: 'Help & Support', icon: <Headset size={18} /> }
   ];
 
   const getStatusBadgeClass = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'delivered':
-        return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case 'shipped':
-        return 'bg-sky-100 text-sky-700 border-sky-200';
-      default:
-        return 'bg-amber-100 text-amber-700 border-amber-200';
-    }
+    if (status?.toLowerCase() === 'delivered') return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+    if (status?.toLowerCase() === 'shipped') return 'bg-sky-100 text-sky-700 border-sky-200';
+    return 'bg-amber-100 text-amber-700 border-amber-200';
   };
 
   return (
@@ -210,33 +177,16 @@ export default function MyOrders() {
                   addresses={addresses}
                   setShowAddAddressModal={setShowAddAddressModal}
                   handleDeleteAddress={handleDeleteAddress}
+                  handleEditAddress={handleEditAddress}
                 />
               )}
 
-              {activeTab === 'wishlist' && (
-                <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xs">
-                  <h2 className="text-lg font-extrabold uppercase mb-2">My Saved Wishlist</h2>
-                  <p className="text-xs text-gray-500 mb-4">You have {wishlistArray.length} items saved.</p>
-                  <button
-                    onClick={() => navigate('/wishlist')}
-                    className="px-6 py-2.5 bg-black text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition cursor-pointer"
-                  >
-                    View Complete Wishlist
-                  </button>
-                </div>
-              )}
-
-              {activeTab === 'support' && (
-                <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xs space-y-3">
-                  <h2 className="text-lg font-extrabold uppercase">SparkRoot Support Concierge</h2>
-                  <p className="text-xs text-gray-600">Need help with an order or inquiry?</p>
-                  <button
-                    onClick={() => navigate('/contact')}
-                    className="px-6 py-2.5 bg-black text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition cursor-pointer"
-                  >
-                    Contact Support Team
-                  </button>
-                </div>
+              {(activeTab === 'wishlist' || activeTab === 'support') && (
+                <UserSupportWishlistTabs
+                  activeTab={activeTab}
+                  wishlistCount={wishlistArray.length}
+                  onNavigate={navigate}
+                />
               )}
             </main>
           </div>

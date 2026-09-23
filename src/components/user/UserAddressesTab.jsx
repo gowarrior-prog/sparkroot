@@ -1,7 +1,7 @@
 import React from 'react';
-import { MapPin, Plus, Trash2 } from 'lucide-react';
+import { MapPin, Plus, Trash2, Edit } from 'lucide-react';
 
-export default function UserAddressesTab({ addresses, setShowAddAddressModal, handleDeleteAddress }) {
+export default function UserAddressesTab({ addresses, setShowAddAddressModal, handleDeleteAddress, handleEditAddress }) {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center bg-white p-5 rounded-2xl border border-gray-200">
@@ -40,13 +40,24 @@ export default function UserAddressesTab({ addresses, setShowAddAddressModal, ha
                 <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 text-[10px] font-extrabold uppercase">
                   {addr.tag || 'Home'}
                 </span>
-                <button
-                  onClick={() => handleDeleteAddress(addr.id)}
-                  className="p-1.5 text-gray-400 hover:text-red-600 transition rounded-lg hover:bg-rose-50 cursor-pointer"
-                  title="Remove address"
-                >
-                  <Trash2 size={16} />
-                </button>
+                <div className="flex items-center gap-1">
+                  {handleEditAddress && (
+                    <button
+                      onClick={() => handleEditAddress(addr)}
+                      className="p-1.5 text-gray-400 hover:text-black transition rounded-lg hover:bg-gray-100 cursor-pointer"
+                      title="Edit address"
+                    >
+                      <Edit size={16} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDeleteAddress(addr.id)}
+                    className="p-1.5 text-gray-400 hover:text-red-600 transition rounded-lg hover:bg-rose-50 cursor-pointer"
+                    title="Remove address"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
 
               <h4 className="font-extrabold text-sm text-slate-900">{addr.name}</h4>
