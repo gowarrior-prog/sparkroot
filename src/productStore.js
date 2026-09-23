@@ -59,3 +59,40 @@ export const invalidateProductCache = () => {
     } catch {}
   }
 };
+
+export const deductProductStock = (purchasedItems = []) => {
+  if (!Array.isArray(purchasedItems) || purchasedItems.length === 0) return;
+
+  if (cachedProducts && Array.isArray(cachedProducts)) {
+    cachedProducts = cachedProducts.map(p => {
+      const match = purchasedItems.find(item => String(item.id) === String(p.id));
+      if (match) {
+        const qty = Number(match.quantity) || 1;
+        const currentStock = p.stock !== undefined ? Number(p.stock) : 10;
+        return { ...p, stock: Math.max(0, currentStock - qty) };
+      }
+      return p;
+    });
+  }
+
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('sparkroot_cached_products');
+      if (stored) {
+        let parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          parsed = parsed.map(p => {
+            const match = purchasedItems.find(item => String(item.id) === String(p.id));
+            if (match) {
+              const qty = Number(match.quantity) || 1;
+              const currentStock = p.stock !== undefined ? Number(p.stock) : 10;
+              return { ...p, stock: Math.max(0, currentStock - qty) };
+            }
+            return p;
+          });
+          localStorage.setItem('sparkroot_cached_products', JSON.stringify(parsed));
+        }
+      }
+    } catch {}
+  }
+};

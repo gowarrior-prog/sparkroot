@@ -35,6 +35,29 @@ export async function POST(request) {
       });
       // Attach name, city, postalCode to returned order object for runtime access
       newOrder = { ...newOrder, name: name || '', city: city || '', postalCode: postalCode || '' };
+
+      // Deduct stock for each purchased item in Prisma DB
+      const parsedItems = typeof items === 'string'
+        ? (() => { try { return JSON.parse(items); } catch { return []; } })()
+        : (Array.isArray(items) ? items : []);
+
+      for (const item of parsedItems) {
+        if (item && item.id) {
+          const qtyToDeduct = Number(item.quantity) || 1;
+          try {
+            const currentProd = await prisma.product.findUnique({ where: { id: String(item.id) } });
+            if (currentProd) {
+              const newStock = Math.max(0, (currentProd.stock || 0) - qtyToDeduct);
+              await prisma.product.update({
+                where: { id: String(item.id) },
+                data: { stock: newStock }
+              });
+            }
+          } catch (stockErr) {
+            console.warn(`Could not update stock for product ${item.id}:`, stockErr.message);
+          }
+        }
+      }
     } catch (dbErr) {
       console.warn('DB order create failed, using memory:', dbErr.message);
       newOrder = addMemoryOrder({ userId, total, items: itemsJson, address, phone, email, name, city, postalCode });

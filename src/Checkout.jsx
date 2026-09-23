@@ -8,6 +8,7 @@ import { Link, useNavigate } from './lib/routerCompat';
 import { API } from './api';
 import ShippingForm from './components/checkout/ShippingForm';
 import OrderSummaryCard from './components/checkout/OrderSummaryCard';
+import { deductProductStock, invalidateProductCache } from './productStore';
 
 export default function Checkout() {
   const { cartItems, cartCount, removeItem } = useCart();
@@ -158,6 +159,10 @@ export default function Checkout() {
           localStorage.setItem('sparkroot_user_orders', JSON.stringify(local));
         } catch {}
       }
+
+      // Instantly deduct product stock locally & invalidate cache
+      deductProductStock(checkoutItems);
+      invalidateProductCache();
 
       // Cleanup & Toast
       if (typeof window !== 'undefined' && buyNowItem) {
