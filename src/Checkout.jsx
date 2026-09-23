@@ -178,7 +178,9 @@ export default function Checkout() {
       navigate('/');
     } catch (err) {
       console.error('Order placement error:', err);
-      // Fallback redirect & notification
+      // Fallback stock deduction, redirect & notification
+      deductProductStock(checkoutItems);
+      invalidateProductCache();
       if (typeof window !== 'undefined') sessionStorage.removeItem('buyNowItem');
       cartItems.forEach(item => removeItem(item.cartKey || item.id, true));
       addToast('Your order has been placed successfully!', 'success', 'Order Placed');

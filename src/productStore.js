@@ -60,48 +60,28 @@ export const getCachedProducts = async (forceRefresh = false) => {
 };
 
 export const invalidateProductCache = () => {
-  cachedProducts = null;
-  lastFetchTime = 0;
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.removeItem('sparkroot_cached_products');
-    } catch {}
-  }
+  lastFetchTime = 0; // Mark cache as expired so next getCachedProducts() fetches fresh data from server
 };
 
 export const deductProductStock = (purchasedItems = []) => {
   if (!Array.isArray(purchasedItems) || purchasedItems.length === 0) return;
 
-  if (cachedProducts && Array.isArray(cachedProducts)) {
-    cachedProducts = cachedProducts.map(p => {
-      const match = purchasedItems.find(item => String(item.id) === String(p.id));
-      if (match) {
-        const qty = Number(match.quantity) || 1;
-        const currentStock = p.stock !== undefined ? Number(p.stock) : 10;
-        return { ...p, stock: Math.max(0, currentStock - qty) };
-      }
-      return p;
-    });
-  }
+  const updateProductItem = (p) => {
+    const match = purchasedItems.find(item => String(item.id) === String(p.id));
+    if (match) {
+      const qty = Number(match.quantity) || 1;
+      const currentStock = p.stock !== undefined && p.stock !== null ? Number(p.stock) : 10;
+      return { ...p, stock: Math.max(0, currentStock - qty) };
+    }
+    return p;
+  };
+
+  let currentList = cachedProducts && cachedProducts.length > 0 ? cachedProducts : getInitialProducts();
+  cachedProducts = currentList.map(updateProductItem);
 
   if (typeof window !== 'undefined') {
     try {
-      const stored = localStorage.getItem('sparkroot_cached_products');
-      if (stored) {
-        let parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          parsed = parsed.map(p => {
-            const match = purchasedItems.find(item => String(item.id) === String(p.id));
-            if (match) {
-              const qty = Number(match.quantity) || 1;
-              const currentStock = p.stock !== undefined ? Number(p.stock) : 10;
-              return { ...p, stock: Math.max(0, currentStock - qty) };
-            }
-            return p;
-          });
-          localStorage.setItem('sparkroot_cached_products', JSON.stringify(parsed));
-        }
-      }
+      localStorage.setItem('sparkroot_cached_products', JSON.stringify(cachedProducts));
     } catch {}
   }
 };
