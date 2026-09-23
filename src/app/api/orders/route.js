@@ -5,7 +5,7 @@ import { memoryOrders, addMemoryOrder } from '../../../lib/orderStore.js';
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { total, items, address, phone, email, name, city } = body;
+    const { total, items, address, phone, email, name, city, postalCode } = body;
 
     const authHeader = request.headers.get('authorization');
     let userId = 1;
@@ -33,11 +33,11 @@ export async function POST(request) {
           email: email || ''
         }
       });
-      // Attach name and city to returned order object for runtime access
-      newOrder = { ...newOrder, name: name || '', city: city || '' };
+      // Attach name, city, postalCode to returned order object for runtime access
+      newOrder = { ...newOrder, name: name || '', city: city || '', postalCode: postalCode || '' };
     } catch (dbErr) {
       console.warn('DB order create failed, using memory:', dbErr.message);
-      newOrder = addMemoryOrder({ userId, total, items: itemsJson, address, phone, email, name, city });
+      newOrder = addMemoryOrder({ userId, total, items: itemsJson, address, phone, email, name, city, postalCode });
     }
 
     return NextResponse.json({ success: true, message: 'Order placed successfully', order: newOrder });

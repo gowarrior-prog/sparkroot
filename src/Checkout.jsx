@@ -39,6 +39,7 @@ export default function Checkout() {
           const u = JSON.parse(uStr);
           if (u.name) initialName = u.name;
           if (u.email) initialEmail = u.email;
+          if (u.phone && u.phone !== '03467921114' && u.phone !== 'Not Added') initialPhone = u.phone;
         }
         const savedAddresses = localStorage.getItem('sparkroot_user_addresses');
         if (savedAddresses) {
@@ -46,15 +47,18 @@ export default function Checkout() {
           if (Array.isArray(addrs) && addrs.length > 0) {
             if (addrs[0].name) initialName = addrs[0].name;
             if (addrs[0].address) initialAddress = addrs[0].address;
-            if (addrs[0].phone) initialPhone = addrs[0].phone;
+            if (addrs[0].phone && addrs[0].phone !== '03467921114' && addrs[0].phone !== 'Not Added') initialPhone = addrs[0].phone;
           }
         }
       } catch (e) {}
+
+      if (initialPhone === '03467921114' || initialPhone === 'Not Added') initialPhone = '';
 
       setFormData({
         fullName: initialName,
         address: initialAddress,
         city: '',
+        postalCode: '',
         phone: initialPhone,
         email: initialEmail
       });
@@ -69,6 +73,7 @@ export default function Checkout() {
     fullName: '',
     address: '',
     city: '',
+    postalCode: '',
     phone: '',
     email: ''
   });
@@ -111,7 +116,7 @@ export default function Checkout() {
         size: i.selectedSize || i.size || null,
         color: i.selectedColor || i.color || null
       }));
-      const fullAddress = `${formData.address}${formData.city ? `, ${formData.city}` : ''}`;
+      const fullAddress = `${formData.address}${formData.city ? `, ${formData.city}` : ''}${formData.postalCode ? ` (Port/Zip Code: ${formData.postalCode})` : ''}`;
 
       const res = await fetch(`${API}/orders`, {
         method: 'POST',
@@ -123,7 +128,8 @@ export default function Checkout() {
           phone: formData.phone,
           email: formData.email,
           name: formData.fullName,
-          city: formData.city
+          city: formData.city,
+          postalCode: formData.postalCode
         })
       });
 

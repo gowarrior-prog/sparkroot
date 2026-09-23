@@ -75,6 +75,18 @@ export default function ShippingForm({
           </div>
 
           <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">Postal / Port Code</label>
+            <input
+              type="text"
+              name="postalCode"
+              value={formData.postalCode || ''}
+              onChange={handleChange}
+              placeholder="e.g. 54000 / Port Code"
+              className="w-full p-4 bg-slate-50 border border-slate-200 focus:outline-none focus:border-black transition text-sm"
+            />
+          </div>
+
+          <div className="md:col-span-2">
             <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">Email</label>
             <input
               type="email"

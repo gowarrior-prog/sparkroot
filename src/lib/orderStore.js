@@ -47,6 +47,7 @@ export function addMemoryOrder(orderData) {
     userId: orderData.userId || 1,
     name: orderData.name || '',
     city: orderData.city || '',
+    postalCode: orderData.postalCode || '',
     total: Number(orderData.total) || 0,
     status: 'pending',
     items: typeof orderData.items === 'string' ? orderData.items : JSON.stringify(orderData.items || []),
