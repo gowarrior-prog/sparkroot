@@ -2,35 +2,58 @@ import { Save, X } from 'lucide-react';
 import { API } from '../api';
 import ProductImageUploader from './ProductImageUploader';
 
-// Image compression utility - Optimized for high speed and sharp quality
-export const compressImageFile = (file, maxW = 800, maxH = 800, quality = 0.75) =>
+// Image compression utility - Optimized for high speed, low payload size, and sharp quality
+export const compressImageFile = (file, maxW = 400, maxH = 400, quality = 0.55) =>
   new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target.result;
-      img.onload = () => {
-        let { width, height } = img;
-        if (width > maxW || height > maxH) {
-          if (width > height) {
-            height = Math.round((height * maxW) / width);
-            width = maxW;
-          } else {
-            width = Math.round((width * maxH) / height);
-            height = maxH;
+    try {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const rawDataUrl = event.target.result;
+          if (!rawDataUrl || typeof rawDataUrl !== 'string') {
+            resolve(null);
+            return;
           }
+          const img = document.createElement('img');
+          img.onload = () => {
+            try {
+              let { naturalWidth: width, naturalHeight: height } = img;
+              if (!width) width = img.width;
+              if (!height) height = img.height;
+              if (width > maxW || height > maxH) {
+                if (width > height) {
+                  height = Math.round((height * maxW) / width);
+                  width = maxW;
+                } else {
+                  width = Math.round((width * maxH) / height);
+                  height = maxH;
+                }
+              }
+              const canvas = document.createElement('canvas');
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+              const result = canvas.toDataURL('image/jpeg', quality);
+              resolve(result);
+            } catch {
+              resolve(rawDataUrl);
+            }
+          };
+          img.onerror = () => resolve(rawDataUrl);
+          img.src = rawDataUrl;
+        } catch {
+          resolve(null);
         }
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', quality));
       };
-      img.onerror = () => resolve(event.target.result);
-    };
-    reader.onerror = () => resolve(null);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    } catch {
+      resolve(null);
+    }
   });
+
+import { invalidateProductCache } from '../productStore';
 
 export default function ProductForm({ form, setForm, editingProduct, onClose, onRefresh, handleAuthError }) {
   const handleSubmit = async (e) => {
@@ -72,6 +95,7 @@ export default function ProductForm({ form, setForm, editingProduct, onClose, on
       });
       if (handleAuthError(res.status)) return;
       if (res.ok) {
+        invalidateProductCache();
         onClose();
         onRefresh();
       } else {

@@ -16,9 +16,22 @@ export default function ProductImageUploader({ form, setForm }) {
 
   const handleExtraFiles = async (e) => {
     const files = Array.from(e.target.files);
-    const compressed = (await Promise.all(files.map(compressImageFile))).filter(Boolean);
-    if (compressed.length) setForm(f => ({ ...f, galleryImages: [...f.galleryImages, ...compressed] }));
-    e.target.value = null;
+    if (!files.length) return;
+    const results = [];
+    for (const file of files) {
+      try {
+        const compressed = await compressImageFile(file);
+        if (compressed && typeof compressed === 'string' && compressed.startsWith('data:')) {
+          results.push(compressed);
+        }
+      } catch (err) {
+        console.error('Compression failed for file:', file.name, err);
+      }
+    }
+    if (results.length) {
+      setForm(f => ({ ...f, galleryImages: [...f.galleryImages, ...results] }));
+    }
+    if (e.target) e.target.value = '';
   };
 
   const addGalleryUrl = () => {
@@ -132,15 +145,39 @@ export default function ProductImageUploader({ form, setForm }) {
 
         {form.galleryImages.length > 0 && (
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-2">
-            {form.galleryImages.map((imgUrl, idx) => (
-              <div key={idx} className="relative group bg-white rounded border border-slate-200 overflow-hidden aspect-square">
-                <img src={imgUrl} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150'; }} />
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center gap-1 p-1">
-                  <button type="button" onClick={() => setAsCover(imgUrl, idx)} className="bg-white text-black text-[9px] font-bold px-1.5 py-0.5 rounded w-full">Cover</button>
-                  <button type="button" onClick={() => removeGallery(idx)} className="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded w-full">Delete</button>
+            {form.galleryImages.map((imgItem, idx) => {
+              const srcUrl = typeof imgItem === 'object' && imgItem?.url ? imgItem.url : (typeof imgItem === 'string' ? imgItem : '');
+              if (!srcUrl) return null;
+              return (
+                <div key={idx} className="relative group bg-white rounded-lg border border-slate-200 overflow-hidden aspect-square shadow-sm">
+                  <img
+                    src={srcUrl}
+                    alt={`Gallery ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={e => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://via.placeholder.com/150?text=Error';
+                    }}
+                  />
+                  {/* Always-visible delete button */}
+                  <button
+                    type="button"
+                    onClick={() => removeGallery(idx)}
+                    className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white p-0.5 rounded-full shadow-md cursor-pointer z-10"
+                  >
+                    <X size={12} />
+                  </button>
+                  {/* Cover button on hover */}
+                  <button
+                    type="button"
+                    onClick={() => setAsCover(srcUrl, idx)}
+                    className="absolute bottom-0 left-0 right-0 bg-black/80 text-white text-[9px] font-bold py-1 text-center opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                  >
+                    ★ Set Cover
+                  </button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

@@ -28,7 +28,7 @@ export async function PUT(request, { params }) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, price, category, stock, description, featured, image, sizes, colors } = body;
+    const { name, price, category, stock, description, featured, image, sizes, colors, extraImages } = body;
 
     const updateData = {};
     if (name !== undefined) updateData.name = name.trim();
@@ -40,6 +40,19 @@ export async function PUT(request, { params }) {
     if (sizes !== undefined) updateData.sizes = sizes ? String(sizes).trim() : null;
     if (colors !== undefined) updateData.colors = colors ? String(colors).trim() : null;
     if (image) updateData.image = image;
+
+    if (Array.isArray(extraImages) || image) {
+      const mainImg = image || updateData.image;
+      const galleryList = Array.isArray(extraImages) ? extraImages.map(img => (typeof img === 'object' && img?.url ? img.url : img)).filter(Boolean) : [];
+      const uniqueImages = Array.from(new Set([mainImg, ...galleryList])).filter(Boolean);
+
+      try {
+        await prisma.productImage.deleteMany({ where: { productId: id } });
+        updateData.images = {
+          create: uniqueImages.map(url => ({ url }))
+        };
+      } catch (e) {}
+    }
 
     const product = await prisma.product.update({
       where: { id },

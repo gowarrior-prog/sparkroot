@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma.js';
 
+// Allow larger request bodies for base64 image uploads (App Router format)
+export const maxDuration = 30;
+export const dynamic = 'force-dynamic';
+
 const formatProduct = (p) => {
   let sizesList = [];
   if (p.sizes) {
@@ -40,11 +44,15 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { name, price, category, stock, description, featured, image, sizes, colors } = body;
+    const { name, price, category, stock, description, featured, image, sizes, colors, extraImages } = body;
 
     if (!name || !price || !category) {
       return NextResponse.json({ error: 'Name, price, and category are required' }, { status: 400 });
     }
+
+    const mainImg = image || 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&auto=format&fit=crop';
+    const galleryList = Array.isArray(extraImages) ? extraImages.map(img => (typeof img === 'object' && img?.url ? img.url : img)).filter(Boolean) : [];
+    const uniqueImages = Array.from(new Set([mainImg, ...galleryList]));
 
     const product = await prisma.product.create({
       data: {
@@ -54,11 +62,11 @@ export async function POST(request) {
         stock: parseInt(stock) || 0,
         description: description ? description.trim() : '',
         featured: Boolean(featured),
-        image: image || 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&auto=format&fit=crop',
+        image: mainImg,
         sizes: sizes ? String(sizes).trim() : null,
         colors: colors ? String(colors).trim() : null,
         images: {
-          create: [{ url: image || 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&auto=format&fit=crop' }]
+          create: uniqueImages.map(url => ({ url }))
         }
       },
       include: { images: true }
