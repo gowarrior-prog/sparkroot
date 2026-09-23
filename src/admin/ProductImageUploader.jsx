@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import { X, Plus, Star, Image as ImageIcon } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { X, Plus, Star, Image as ImageIcon, Upload, FolderPlus } from 'lucide-react';
 import { compressImageFile } from './ProductForm';
 
 export default function ProductImageUploader({ form, setForm }) {
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
+  const mainInputRef = useRef(null);
+  const extraInputRef = useRef(null);
 
   const handleMainFile = async (e) => {
     const file = e.target.files[0];
@@ -44,7 +46,7 @@ export default function ProductImageUploader({ form, setForm }) {
         <span className="p-2 bg-black text-white rounded-lg"><ImageIcon size={18} /></span>
         <div>
           <h3 className="text-sm font-black uppercase tracking-wider text-black">Product Photos / Images</h3>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">Yahan photos upload ya URL add karein.</p>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">Device gallery se photos upload ya Image URL add karein.</p>
         </div>
       </div>
 
@@ -52,12 +54,34 @@ export default function ProductImageUploader({ form, setForm }) {
       <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
         <div className="sm:col-span-2 space-y-3">
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Main Cover Photo Upload:</label>
-            <input type="file" accept="image/*" onChange={handleMainFile} className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs font-medium file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-bold file:bg-black file:text-white cursor-pointer" />
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+              Main Cover Photo (From Gallery):
+            </label>
+            <input
+              ref={mainInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleMainFile}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => mainInputRef.current?.click()}
+              className="w-full py-2.5 px-4 bg-black hover:bg-slate-800 text-white rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
+            >
+              <Upload size={14} />
+              <span>Choose Main Photo From Gallery</span>
+            </button>
           </div>
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Ya Photo URL:</label>
-            <input type="url" placeholder="https://example.com/main.jpg" value={form.image} onChange={e => setForm(f => ({ ...f, image: e.target.value, imageFile: null }))} className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs font-medium focus:border-black outline-none" />
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Ya Photo URL Paste Karein:</label>
+            <input
+              type="url"
+              placeholder="https://example.com/main.jpg"
+              value={form.image}
+              onChange={e => setForm(f => ({ ...f, image: e.target.value, imageFile: null }))}
+              className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs font-medium focus:border-black outline-none"
+            />
           </div>
         </div>
         <div className="flex flex-col items-center justify-center p-3 bg-slate-50 border border-slate-200 rounded-lg min-h-[100px]">
@@ -79,8 +103,23 @@ export default function ProductImageUploader({ form, setForm }) {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1">Upload Multiple Images:</label>
-            <input type="file" multiple accept="image/*" onChange={handleExtraFiles} className="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white cursor-pointer" />
+            <label className="block text-xs font-bold text-slate-600 mb-1">Upload Multiple Gallery Images:</label>
+            <input
+              ref={extraInputRef}
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleExtraFiles}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => extraInputRef.current?.click()}
+              className="w-full py-2 px-3 bg-slate-900 hover:bg-black text-white rounded text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+            >
+              <FolderPlus size={14} />
+              <span>Select Photos From Gallery</span>
+            </button>
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-600 mb-1">Add Image URL:</label>

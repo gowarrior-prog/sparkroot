@@ -34,9 +34,8 @@ const SignUp = () => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       const queryParams = new URLSearchParams(window.location.search);
-      const redirect = queryParams.get('redirect') || '/';
-      navigate(redirect);
-      window.location.reload();
+      const targetUrl = queryParams.get('redirect') || (data.user?.role === 'admin' ? '/admin' : '/');
+      window.location.href = targetUrl;
     } catch (err) {
       setError(err.message);
     } finally {
@@ -79,9 +78,9 @@ const SignUp = () => {
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
               <input
-                type="email"
+                type="text"
                 name="email"
-                placeholder="Email Address"
+                placeholder="Email Address or Username"
                 required
                 value={formData.email}
                 onChange={handleChange}

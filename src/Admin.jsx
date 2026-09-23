@@ -101,7 +101,10 @@ export default function Admin() {
   };
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') { navigate('/'); return; }
+    if (!user || user.role !== 'admin') {
+      navigate('/signin');
+      return;
+    }
     fetchData();
   }, [activeTab]);
 

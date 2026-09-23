@@ -3,7 +3,6 @@ import { CartProvider } from '../CartContext';
 import { ToastProvider } from '../components/ToastProvider';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
-import WhatsAppConcierge from '../components/WhatsAppConcierge';
 
 export const metadata = {
   title: 'SPARKROOT — Modern Luxury E-Commerce',
@@ -35,7 +34,6 @@ export default function RootLayout({ children }) {
             <Navbar />
             <main className="flex-1">{children}</main>
             <Footer />
-            <WhatsAppConcierge />
           </CartProvider>
         </ToastProvider>
       </body>
