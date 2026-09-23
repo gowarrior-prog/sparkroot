@@ -210,22 +210,22 @@ export default function Navbar() {
             </form>
 
             <div className="flex items-center gap-3 sm:gap-5">
-              {user?.role === 'admin' && (
+              {user?.role === 'admin' ? (
                 <Link
                   to="/admin"
-                  className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-400 text-black text-[10px] font-extrabold uppercase tracking-wider hover:bg-amber-500 transition shadow-2xs"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-400 text-black text-[11px] font-extrabold uppercase tracking-wider hover:bg-amber-500 transition shadow-xs"
                 >
-                  <Sparkles size={12} /> Admin Panel
+                  <Sparkles size={13} /> Admin Panel
+                </Link>
+              ) : (
+                <Link
+                  to={user ? '/my-orders' : '/signup'}
+                  className="flex items-center gap-1 text-xs font-semibold text-slate-800 hover:text-black transition cursor-pointer"
+                >
+                  <User size={18} className="text-slate-700" />
+                  <span className="hidden lg:inline">{user ? user.name : 'Account'}</span>
                 </Link>
               )}
-
-              <Link
-                to={user ? (user.role === 'admin' ? '/admin' : '/my-orders') : '/signup'}
-                className="flex items-center gap-1 text-xs font-semibold text-slate-800 hover:text-black transition cursor-pointer"
-              >
-                <User size={18} className="text-slate-700" />
-                <span className="hidden lg:inline">{user ? user.name : 'Account'}</span>
-              </Link>
 
               <Link
                 to="/wishlist"

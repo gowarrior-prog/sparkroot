@@ -125,6 +125,38 @@ export default function ProductInfo({
           )}
         </div>
 
+        {/* Quantity Selector Option */}
+        {isStockAvailable && (
+          <div className="flex items-center justify-between py-2.5 px-4 bg-slate-50 border border-slate-200/80 rounded-xl">
+            <span className="text-xs font-black uppercase tracking-widest text-slate-700">Select Quantity:</span>
+            <div className="flex items-center gap-3 bg-white border border-slate-300 rounded-lg p-1 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                disabled={quantity <= 1}
+                className="w-7 h-7 flex items-center justify-center rounded-md text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition cursor-pointer"
+                title="Decrease quantity"
+              >
+                <Minus size={14} />
+              </button>
+              <span className="text-xs font-black text-black min-w-[1.5rem] text-center select-none">
+                {quantity}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const maxStock = product.stock !== undefined && product.stock !== null ? Number(product.stock) : 99;
+                  setQuantity(q => (maxStock > 0 ? Math.min(maxStock, q + 1) : q + 1));
+                }}
+                className="w-7 h-7 flex items-center justify-center rounded-md text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                title="Increase quantity"
+              >
+                <Plus size={14} />
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           <button
             type="button"
