@@ -107,12 +107,14 @@ export default function Checkout() {
         body: JSON.stringify({ total, items: itemData, address: fullAddress, phone: formData.phone, email: formData.email })
       });
 
-      const placedOrder = { id: Date.now(), userId: 1, total, status: 'pending', items: itemData, address: fullAddress, phone: formData.phone, email: formData.email, createdAt: new Date().toISOString() };
-      try {
-        const local = JSON.parse(localStorage.getItem('sparkroot_user_orders') || '[]');
-        local.unshift(placedOrder);
-        localStorage.setItem('sparkroot_user_orders', JSON.stringify(local));
-      } catch {}
+      if (!res.ok) {
+        const placedOrder = { id: Date.now(), userId: 1, total, status: 'pending', items: itemData, address: fullAddress, phone: formData.phone, email: formData.email, createdAt: new Date().toISOString() };
+        try {
+          const local = JSON.parse(localStorage.getItem('sparkroot_user_orders') || '[]');
+          local.unshift(placedOrder);
+          localStorage.setItem('sparkroot_user_orders', JSON.stringify(local));
+        } catch {}
+      }
 
       // Cleanup & Toast
       if (typeof window !== 'undefined' && buyNowItem) {

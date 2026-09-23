@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from './lib/routerCompat';
 import { useCart } from './CartContext';
-import { ShoppingCart, Heart, Zap, Search as SearchIcon } from 'lucide-react';
+import { ShoppingCart, Heart, Zap, Search as SearchIcon, X } from 'lucide-react';
 import { API } from './api';
 import { getCachedProducts } from './productStore';
 
@@ -13,8 +13,13 @@ export default function Search() {
   const navigate = useNavigate();
   const { addToCart, toggleLike, likedProducts } = useCart();
 
+  const [searchInput, setSearchInput] = useState(query);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setSearchInput(query);
+  }, [query]);
 
   useEffect(() => {
     let isMounted = true;
@@ -64,6 +69,11 @@ export default function Search() {
     return () => { isMounted = false; };
   }, [query]);
 
+  const handleSearchChange = (val) => {
+    setSearchInput(val);
+    navigate(`/search?q=${encodeURIComponent(val.trim())}`);
+  };
+
   const handleAddClick = (e, product) => {
     e.stopPropagation();
     addToCart(product);
@@ -87,13 +97,17 @@ export default function Search() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 pt-24 pb-20 px-4">
+    <div className="min-h-screen bg-[#f4f4f6] text-slate-900 pt-32 sm:pt-36 pb-20 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight">
-            {query ? <>Search Results for <span className="text-slate-400">"{query}"</span></> : <span className="text-slate-400">Search Products</span>}
+        <div className="text-center mb-8 border-b border-gray-200 pb-4">
+          <h1 className="text-2xl sm:text-4xl font-extrabold uppercase tracking-tight text-slate-900">
+            {query ? <>Search Results for <span className="text-gray-500">"{query}"</span></> : 'Search Products'}
           </h1>
-          {query && <p className="text-slate-500 font-medium mt-2">Found {products.length} product(s) matching your request</p>}
+          {query && (
+            <p className="text-xs font-semibold text-slate-500 mt-2">
+              {products.length > 0 ? `Found ${products.length} matching product(s)` : `No products found matching "${query}"`}
+            </p>
+          )}
         </div>
 
         {loading && products.length === 0 ? (
