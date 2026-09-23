@@ -4,8 +4,8 @@ import { memoryOrders } from '../../../../lib/orderStore.js';
 
 export async function GET() {
   try {
-    let totalUsers = 1;
-    let totalProducts = 12;
+    let totalUsers = 0;
+    let totalProducts = 0;
     let dbOrders = [];
     let revenueSum = 0;
 
@@ -18,11 +18,11 @@ export async function GET() {
           include: { user: { select: { name: true, email: true } } }
         })
       ]);
-      totalUsers = uCount || 1;
-      totalProducts = pCount || 12;
+      totalUsers = uCount;
+      totalProducts = pCount;
       dbOrders = orders || [];
     } catch (e) {
-      console.warn('Prisma stats query failed, calculating fallback:', e.message);
+      console.warn('Prisma stats query failed:', e.message);
     }
 
     const existingIds = new Set(dbOrders.map(o => String(o.id)));
@@ -60,9 +60,9 @@ export async function GET() {
     console.error('Admin stats error:', error);
     const revenueSum = memoryOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
     return NextResponse.json({
-      totalUsers: 1,
+      totalUsers: 0,
       totalOrders: memoryOrders.length,
-      totalProducts: 12,
+      totalProducts: 0,
       totalRevenue: revenueSum,
       recentOrders: memoryOrders.slice(0, 5),
       chartData: new Array(10).fill(0)
