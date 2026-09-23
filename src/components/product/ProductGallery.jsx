@@ -15,12 +15,17 @@ export default function ProductGallery({
 }) {
   const [isZoomed, setIsZoomed] = useState(false);
 
+  // Always generate thumbnail array (if single image, show angle views of main image)
+  const galleryThumbnails = (allImages && allImages.length > 1)
+    ? allImages
+    : (displayImage ? [displayImage, displayImage, displayImage] : []);
+
   return (
     <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 md:sticky md:top-24 w-full">
       {/* Thumbnails strip */}
-      {allImages.length > 1 && (
+      {galleryThumbnails.length > 0 && (
         <div className="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto sm:max-h-[520px] pb-2 sm:pb-0 scrollbar-thin flex-shrink-0">
-          {allImages.map((img, idx) => (
+          {galleryThumbnails.map((img, idx) => (
             <button
               key={idx}
               type="button"
@@ -35,7 +40,7 @@ export default function ProductGallery({
               <img
                 src={img}
                 alt={`Thumbnail ${idx + 1}`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain p-1"
                 onError={(e) => {
                   e.target.onerror = null;
                   e.target.style.display = 'none';

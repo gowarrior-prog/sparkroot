@@ -8,12 +8,19 @@ import { getInitialProducts, getCachedProducts } from './productStore';
 
 function ProductCard({ product, onBuyNow, onAddToCart, onLike, isLiked }) {
   const navigate = useNavigate();
+  const isStockAvailable = product.stock === undefined || product.stock === null || Number(product.stock) > 0;
 
   return (
     <div
       onClick={() => navigate(`/product/${product.id}`)}
       className="bg-[#eaeaea] border border-gray-300/70 rounded-xl p-3 sm:p-4 flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group cursor-pointer relative"
     >
+      {!isStockAvailable && (
+        <span className="absolute top-3 left-3 bg-red-600 text-white font-extrabold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full z-10 shadow-xs">
+          OUT OF STOCK
+        </span>
+      )}
+
       {/* Top right wishlist & cart action icons */}
       <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 flex items-center gap-1.5">
         <button
@@ -24,22 +31,24 @@ function ProductCard({ product, onBuyNow, onAddToCart, onLike, isLiked }) {
         >
           <Heart size={14} className={isLiked ? 'fill-red-500 text-red-500' : ''} />
         </button>
-        <button
-          type="button"
-          onClick={(e) => onAddToCart(e, product)}
-          className="p-1.5 bg-white/90 backdrop-blur-md rounded-full text-gray-600 hover:text-black hover:scale-110 transition cursor-pointer shadow-2xs"
-          title="Add to Cart"
-        >
-          <ShoppingBag size={14} />
-        </button>
+        {isStockAvailable && (
+          <button
+            type="button"
+            onClick={(e) => onAddToCart(e, product)}
+            className="p-1.5 bg-white/90 backdrop-blur-md rounded-full text-gray-600 hover:text-black hover:scale-110 transition cursor-pointer shadow-2xs"
+            title="Add to Cart"
+          >
+            <ShoppingBag size={14} />
+          </button>
+        )}
       </div>
 
       {/* Product Image Area */}
-      <div className="aspect-square rounded-lg bg-transparent overflow-hidden mb-2.5 flex items-center justify-center p-1">
+      <div className="aspect-square rounded-lg bg-transparent overflow-hidden mb-2.5 flex items-center justify-center p-1 relative">
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-full object-contain group-hover:scale-108 transition-transform duration-500 mix-blend-multiply"
+          className={`w-full h-full object-contain group-hover:scale-108 transition-transform duration-500 mix-blend-multiply ${!isStockAvailable ? 'opacity-50 grayscale' : ''}`}
           onError={(e) => {
             e.target.onerror = null;
             e.target.src = 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500&auto=format&fit=crop&q=80';
@@ -72,14 +81,24 @@ function ProductCard({ product, onBuyNow, onAddToCart, onLike, isLiked }) {
 
       {/* Full width Buy Now pill button */}
       <div className="mt-3 pt-1">
-        <button
-          type="button"
-          onClick={(e) => onBuyNow(e, product)}
-          className="w-full bg-black hover:bg-slate-800 text-white font-bold py-2 px-3 rounded-full flex items-center justify-center gap-1.5 text-[11px] sm:text-xs tracking-wider transition-all duration-200 active:scale-95 cursor-pointer shadow-xs"
-        >
-          <Zap size={13} className="text-amber-300" />
-          <span>Buy Now</span>
-        </button>
+        {isStockAvailable ? (
+          <button
+            type="button"
+            onClick={(e) => onBuyNow(e, product)}
+            className="w-full bg-black hover:bg-slate-800 text-white font-bold py-2 px-3 rounded-full flex items-center justify-center gap-1.5 text-[11px] sm:text-xs tracking-wider transition-all duration-200 active:scale-95 cursor-pointer shadow-xs"
+          >
+            <Zap size={13} className="text-amber-300" />
+            <span>Buy Now</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled
+            className="w-full bg-slate-300 text-slate-500 font-extrabold py-2 px-3 rounded-full flex items-center justify-center gap-1 text-[11px] sm:text-xs tracking-wider cursor-not-allowed uppercase"
+          >
+            Out of Stock
+          </button>
+        )}
       </div>
 
     </div>

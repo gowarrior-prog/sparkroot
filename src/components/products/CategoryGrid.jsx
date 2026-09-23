@@ -28,12 +28,20 @@ export default function CategoryGrid({ products, loading, likedProducts, onLike,
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
       {products.map((product) => {
         const isLiked = !!likedProducts[product.id];
+        const isStockAvailable = product.stock === undefined || product.stock === null || Number(product.stock) > 0;
+
         return (
           <div
             key={product.id}
             onClick={() => onNavigate(`/product/${product.id}`)}
             className="bg-white border border-gray-200 rounded-2xl p-3 sm:p-4 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer relative"
           >
+            {!isStockAvailable && (
+              <span className="absolute top-3 left-3 bg-red-600 text-white font-extrabold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full z-10 shadow-xs">
+                OUT OF STOCK
+              </span>
+            )}
+
             <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
               <button
                 type="button"
@@ -42,20 +50,22 @@ export default function CategoryGrid({ products, loading, likedProducts, onLike,
               >
                 <Heart size={14} className={isLiked ? 'fill-red-500 text-red-500' : ''} />
               </button>
-              <button
-                type="button"
-                onClick={(e) => onAddClick(e, product)}
-                className="p-1.5 bg-white/90 backdrop-blur-xs rounded-full text-gray-600 hover:text-black hover:scale-110 transition cursor-pointer shadow-xs"
-              >
-                <ShoppingBag size={14} />
-              </button>
+              {isStockAvailable && (
+                <button
+                  type="button"
+                  onClick={(e) => onAddClick(e, product)}
+                  className="p-1.5 bg-white/90 backdrop-blur-xs rounded-full text-gray-600 hover:text-black hover:scale-110 transition cursor-pointer shadow-xs"
+                >
+                  <ShoppingBag size={14} />
+                </button>
+              )}
             </div>
 
             <div className="aspect-square rounded-xl bg-gray-50 overflow-hidden mb-3 p-2 flex items-center justify-center">
               <img
                 src={product.image}
                 alt={product.name}
-                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                className={`w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ${!isStockAvailable ? 'opacity-50 grayscale' : ''}`}
                 onError={(e) => {
                   e.target.onerror = null;
                   e.target.src = 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500&auto=format&fit=crop&q=80';
@@ -83,14 +93,24 @@ export default function CategoryGrid({ products, loading, likedProducts, onLike,
             </div>
 
             <div className="mt-3 pt-1">
-              <button
-                type="button"
-                onClick={(e) => onBuyNow(e, product)}
-                className="w-full bg-black hover:bg-slate-800 text-white font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 text-[11px] sm:text-xs tracking-wider transition-all cursor-pointer"
-              >
-                <Zap size={13} className="text-amber-300" />
-                <span>Buy Now</span>
-              </button>
+              {isStockAvailable ? (
+                <button
+                  type="button"
+                  onClick={(e) => onBuyNow(e, product)}
+                  className="w-full bg-black hover:bg-slate-800 text-white font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 text-[11px] sm:text-xs tracking-wider transition-all cursor-pointer"
+                >
+                  <Zap size={13} className="text-amber-300" />
+                  <span>Buy Now</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full bg-slate-200 text-slate-400 font-bold py-2 px-3 rounded-xl text-[11px] sm:text-xs tracking-wider cursor-not-allowed uppercase text-center"
+                >
+                  Out of Stock
+                </button>
+              )}
             </div>
           </div>
         );
