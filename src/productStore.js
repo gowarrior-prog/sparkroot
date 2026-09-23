@@ -85,3 +85,26 @@ export const deductProductStock = (purchasedItems = []) => {
     } catch {}
   }
 };
+
+export const restoreProductStock = (restoredItems = []) => {
+  if (!Array.isArray(restoredItems) || restoredItems.length === 0) return;
+
+  const updateProductItem = (p) => {
+    const match = restoredItems.find(item => String(item.id) === String(p.id));
+    if (match) {
+      const qty = Number(match.quantity) || 1;
+      const currentStock = p.stock !== undefined && p.stock !== null ? Number(p.stock) : 0;
+      return { ...p, stock: currentStock + qty };
+    }
+    return p;
+  };
+
+  let currentList = cachedProducts && cachedProducts.length > 0 ? cachedProducts : getInitialProducts();
+  cachedProducts = currentList.map(updateProductItem);
+
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('sparkroot_cached_products', JSON.stringify(cachedProducts));
+    } catch {}
+  }
+};

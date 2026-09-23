@@ -2,8 +2,12 @@ import React from 'react';
 import { Package, Truck } from 'lucide-react';
 import OrderTimerBanner from './OrderTimerBanner';
 import { API } from '../../api';
+import { restoreProductStock, invalidateProductCache } from '../../productStore';
+import { useToast } from '../ToastProvider';
 
 export default function UserOrdersTab({ loading, filteredOrders, orderFilter, setOrderFilter, safeFormatPrice, getStatusBadgeClass, onNavigate }) {
+  const { addToast } = useToast() || {};
+
   const handleAutoConfirm = async (orderId) => {
     try {
       await fetch(`${API}/orders/${orderId}`, {
@@ -15,6 +19,51 @@ export default function UserOrdersTab({ loading, filteredOrders, orderFilter, se
       console.warn('Auto confirm sync failed:', e);
     }
   };
+
+  const handleCancelOrder = async (targetOrder) => {
+    if (!targetOrder || !targetOrder.id) return;
+    const confirmCancel = window.confirm(`Are you sure you want to cancel this order? The product stock will be automatically restored.`);
+    if (!confirmCancel) return;
+
+    try {
+      // 1. Send PATCH to backend
+      await fetch(`${API}/orders/${targetOrder.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'cancelled' })
+      });
+
+      // 2. Restock items locally & invalidate cache
+      const itemsToRestore = Array.isArray(targetOrder.items)
+        ? targetOrder.items
+        : (typeof targetOrder.items === 'string' ? (() => { try { return JSON.parse(targetOrder.items); } catch { return []; } })() : []);
+      restoreProductStock(itemsToRestore);
+      invalidateProductCache();
+
+      // 3. Update local storage orders
+      try {
+        const stored = localStorage.getItem('sparkroot_user_orders');
+        if (stored) {
+          let parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            parsed = parsed.map(o => String(o.id) === String(targetOrder.id) ? { ...o, status: 'cancelled' } : o);
+            localStorage.setItem('sparkroot_user_orders', JSON.stringify(parsed));
+          }
+        }
+      } catch {}
+
+      targetOrder.status = 'cancelled';
+      if (addToast) addToast('Order cancelled successfully! Item stock restored.', 'success');
+
+      if (typeof window !== 'undefined') {
+        setTimeout(() => window.location.reload(), 800);
+      }
+    } catch (err) {
+      console.error('Cancel order failed:', err);
+      if (addToast) addToast('Failed to cancel order', 'delete');
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:px-6 rounded-2xl border border-gray-200">
@@ -59,7 +108,7 @@ export default function UserOrdersTab({ loading, filteredOrders, orderFilter, se
               key={order.id}
               className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-xs hover:border-gray-300 transition space-y-4"
             >
-              <OrderTimerBanner order={order} onAutoConfirm={handleAutoConfirm} />
+              <OrderTimerBanner order={order} onAutoConfirm={handleAutoConfirm} onCancelOrder={handleCancelOrder} />
 
               <div className="flex flex-wrap justify-between items-center gap-3 pb-4 border-b border-gray-100">
                 <div>

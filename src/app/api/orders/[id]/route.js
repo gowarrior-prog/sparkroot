@@ -10,10 +10,37 @@ export async function PATCH(request, context) {
     const { status } = body;
 
     const numId = Number(id);
+    const targetId = !isNaN(numId) ? numId : id;
 
     try {
+      if (status?.toLowerCase() === 'cancelled' || status?.toLowerCase() === 'canceled') {
+        const existingOrder = await prisma.order.findUnique({ where: { id: targetId } });
+        if (existingOrder && existingOrder.items) {
+          const parsedItems = typeof existingOrder.items === 'string'
+            ? (() => { try { return JSON.parse(existingOrder.items); } catch { return []; } })()
+            : (Array.isArray(existingOrder.items) ? existingOrder.items : []);
+
+          for (const item of parsedItems) {
+            if (item && item.id) {
+              const qtyToRestore = Number(item.quantity) || 1;
+              try {
+                const prod = await prisma.product.findUnique({ where: { id: String(item.id) } });
+                if (prod) {
+                  await prisma.product.update({
+                    where: { id: String(item.id) },
+                    data: { stock: (prod.stock ?? 0) + qtyToRestore }
+                  });
+                }
+              } catch (prodErr) {
+                console.warn(`Could not restore stock for item ${item.id}:`, prodErr.message);
+              }
+            }
+          }
+        }
+      }
+
       await prisma.order.update({
-        where: { id: !isNaN(numId) ? numId : id },
+        where: { id: targetId },
         data: { status }
       });
     } catch (e) {
