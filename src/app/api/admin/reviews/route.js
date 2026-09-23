@@ -19,11 +19,16 @@ export async function GET() {
       dbReviews = [];
     }
 
-    const existingIds = new Set(dbReviews.map(r => String(r.id)));
-    const merged = [...dbReviews];
+    // Filter DB reviews to include only genuine product reviews (excluding contact messages saved in DB)
+    const productDbReviews = dbReviews.filter(r => !r.comment || !r.comment.includes('[CONTACT MESSAGE]'));
+
+    const existingComments = new Set(productDbReviews.map(r => r.comment?.trim()));
+    const merged = [...productDbReviews];
 
     for (const memRev of memoryReviews) {
-      if (!existingIds.has(String(memRev.id))) {
+      const cleanComment = memRev.comment?.trim();
+      if (cleanComment && !existingComments.has(cleanComment)) {
+        existingComments.add(cleanComment);
         merged.push(memRev);
       }
     }

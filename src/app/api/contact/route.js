@@ -20,25 +20,7 @@ export async function POST(req) {
       createdAt: new Date().toISOString()
     };
 
-    // Try saving to DB Review table
-    try {
-      // Find any valid product ID to link review, or create orphan entry
-      const firstProduct = await prisma.product.findFirst({ select: { id: true } });
-      const productId = firstProduct ? firstProduct.id : 1;
-
-      await prisma.review.create({
-        data: {
-          productId,
-          userName: name,
-          comment: formattedComment,
-          rating: 5
-        }
-      });
-    } catch (e) {
-      console.warn('Prisma contact review save fallback:', e.message);
-    }
-
-    // Save to memory store as well
+    // Save contact message ONCE in contact store
     addMemoryReview(reviewData);
 
     return NextResponse.json({
