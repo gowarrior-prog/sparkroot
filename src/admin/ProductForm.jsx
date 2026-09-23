@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Save, X } from 'lucide-react';
 import { API } from '../api';
 import ProductImageUploader from './ProductImageUploader';
+import { invalidateProductCache } from '../productStore';
 
 // Image compression utility - Optimized for high speed, low payload size, and sharp quality
 export const compressImageFile = (file, maxW = 400, maxH = 400, quality = 0.55) =>
@@ -53,11 +55,12 @@ export const compressImageFile = (file, maxW = 400, maxH = 400, quality = 0.55) 
     }
   });
 
-import { invalidateProductCache } from '../productStore';
-
 export default function ProductForm({ form, setForm, editingProduct, onClose, onRefresh, handleAuthError }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return; // Prevent double submit
     if (!form.name || !form.price || !form.category) {
       alert('Please fill Name, Price, and Category');
       return;
@@ -67,6 +70,7 @@ export default function ProductForm({ form, setForm, editingProduct, onClose, on
       return;
     }
 
+    setIsSubmitting(true);
     const url = editingProduct ? `${API}/admin/products/${editingProduct.id}` : `${API}/admin/products`;
     const method = editingProduct ? 'PUT' : 'POST';
     const validGallery = (form.galleryImages || [])
@@ -101,10 +105,12 @@ export default function ProductForm({ form, setForm, editingProduct, onClose, on
       } else {
         const err = await res.json();
         alert(err.error || 'Failed to save product');
+        setIsSubmitting(false);
       }
     } catch (error) {
       console.error(error);
       alert('Error saving product');
+      setIsSubmitting(false);
     }
   };
 
@@ -209,8 +215,13 @@ export default function ProductForm({ form, setForm, editingProduct, onClose, on
 
         <div className="flex justify-end gap-4 pt-6 border-t border-slate-200">
           <button type="button" onClick={onClose} className="px-6 py-2.5 rounded-md font-bold uppercase tracking-widest text-xs hover:bg-slate-100 transition">Cancel</button>
-          <button type="submit" className="bg-black hover:bg-slate-800 text-white px-8 py-2.5 rounded-md font-bold uppercase tracking-widest text-xs flex items-center gap-2 transition shadow-sm">
-            <Save size={16} /> {editingProduct ? 'Update Product' : 'Save Product'}
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-black hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed text-white px-8 py-2.5 rounded-md font-bold uppercase tracking-widest text-xs flex items-center gap-2 transition shadow-sm"
+          >
+            <Save size={16} />
+            {isSubmitting ? 'Saving...' : (editingProduct ? 'Update Product' : 'Save Product')}
           </button>
         </div>
       </form>
