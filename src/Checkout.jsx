@@ -121,7 +121,7 @@ export default function Checkout() {
       }
 
       // Show beautiful top white notification toast
-      addToast('Your order has been placed successfully!', 'success');
+      addToast('Your order has been placed successfully!', 'success', 'Order Placed');
 
       // Immediately navigate to Landing Page (Home)!
       navigate('/');
@@ -130,7 +130,7 @@ export default function Checkout() {
       // Fallback redirect & notification
       if (typeof window !== 'undefined') sessionStorage.removeItem('buyNowItem');
       cartItems.forEach(item => removeItem(item.cartKey || item.id, true));
-      addToast('Your order has been placed successfully!', 'success');
+      addToast('Your order has been placed successfully!', 'success', 'Order Placed');
       navigate('/');
     } finally {
       setIsSubmitting(false);

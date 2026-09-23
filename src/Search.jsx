@@ -6,7 +6,6 @@ import { useCart } from './CartContext';
 import { ShoppingCart, Heart, Zap, Search as SearchIcon } from 'lucide-react';
 import { API } from './api';
 import { getCachedProducts } from './productStore';
-import { products as fallbackProducts } from './dataproducts';
 
 export default function Search() {
   const [searchParams] = useSearchParams();
@@ -44,27 +43,10 @@ export default function Search() {
         if (res.ok) {
           apiResults = await res.json();
         }
-
-        const localMatches = fallbackProducts.filter(p =>
-          p.name.toLowerCase().includes(qLower) ||
-          (p.category && p.category.toLowerCase().includes(qLower)) ||
-          (p.description && p.description.toLowerCase().includes(qLower))
-        );
-
-        const combinedMap = new Map();
-        [...apiResults, ...localMatches].forEach(item => {
-          const key = item.name ? item.name.toLowerCase().trim() : String(item.id);
-          if (!combinedMap.has(key)) combinedMap.set(key, item);
-        });
-
-        if (isMounted) setProducts(Array.from(combinedMap.values()));
+        if (isMounted) setProducts(Array.isArray(apiResults) ? apiResults : []);
       } catch (err) {
         console.error('Search error:', err);
-        const localMatches = fallbackProducts.filter(p =>
-          p.name.toLowerCase().includes(qLower) ||
-          (p.category && p.category.toLowerCase().includes(qLower))
-        );
-        if (isMounted) setProducts(localMatches);
+        if (isMounted) setProducts([]);
       } finally {
         if (isMounted) setLoading(false);
       }

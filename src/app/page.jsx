@@ -1,13 +1,7 @@
-import Hero from '../Hero';
-import FeaturedProducts from '../FeaturedProducts';
-import WhyLuxe from '../WhyLuxe';
+'use client';
 
-export default function Home() {
-  return (
-    <main className="pt-20 md:pt-24 min-h-screen bg-white">
-      <Hero />
-      <FeaturedProducts />
-      <WhyLuxe />
-    </main>
-  );
+import Home from '../Home';
+
+export default function Page() {
+  return <Home />;
 }

@@ -8,9 +8,9 @@ const ToastContext = createContext();
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
-  const addToast = useCallback((message, type = 'success') => {
+  const addToast = useCallback((message, type = 'success', title = '') => {
     const id = Date.now() + Math.random();
-    setToasts(prev => [...prev, { id, message, type, exiting: false }]);
+    setToasts(prev => [...prev, { id, message, type, title, exiting: false }]);
 
     // Auto dismiss after 3s
     setTimeout(() => {
@@ -66,7 +66,7 @@ export function ToastProvider({ children }) {
             {/* Message Text */}
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-0.5">
-                {toast.type === 'delete' ? 'Cart Updated' : 'Added To Cart'}
+                {toast.title || (toast.type === 'delete' ? 'Removed' : toast.type === 'cart' ? 'Added To Cart' : 'Notification')}
               </p>
               <p className="text-xs font-semibold text-slate-800 truncate leading-snug">
                 {toast.message}

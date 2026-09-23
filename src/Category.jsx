@@ -3,54 +3,75 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from './lib/routerCompat';
 import { useCart } from './CartContext';
-import { ShoppingCart, Heart, Zap } from 'lucide-react';
+import { ShoppingBag, Heart, Zap, Star } from 'lucide-react';
 import SEO from './SEO';
 import { API } from './api';
-import { getCachedProducts } from './productStore';
-import { products as fallbackProducts } from './dataproducts';
+import { getInitialProducts, getCachedProducts } from './productStore';
 
 export default function Category() {
   const { name } = useParams();
   const navigate = useNavigate();
   const { addToCart, toggleLike, likedProducts } = useCart();
 
+  const filterCategory = (allProds, catSlug) => {
+    if (!Array.isArray(allProds) || allProds.length === 0) return [];
+    const lowerSlug = catSlug ? catSlug.toLowerCase() : '';
+    
+    // Broad shop matching
+    if (lowerSlug === 'shop' || lowerSlug === 'all') {
+      return allProds;
+    }
+
+    const matched = allProds.filter(p => {
+      const pCat = p.category ? p.category.toLowerCase() : '';
+      return pCat === lowerSlug || pCat.includes(lowerSlug) || lowerSlug.includes(pCat);
+    });
+
+    if (matched.length > 0) return matched;
+    // Fallback: return all products if none matched specific slug
+    return allProds;
+  };
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const displayCategory = name
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  const displayCategory = name?.toLowerCase() === 'all'
+    ? 'All Products'
+    : name
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 
   useEffect(() => {
     let isMounted = true;
+
+    const initialAll = getInitialProducts();
+    if (initialAll.length > 0) {
+      setProducts(filterCategory(initialAll, name));
+      setLoading(false);
+    }
+
     const fetchCategory = async () => {
-      // 1. Try instant filter from cached products
       const cached = await getCachedProducts();
       if (isMounted && Array.isArray(cached) && cached.length > 0) {
-        const matched = cached.filter(p => p.category?.toLowerCase() === name.toLowerCase());
-        if (matched.length > 0) {
-          setProducts(matched);
-          setLoading(false);
-          return;
-        }
+        setProducts(filterCategory(cached, name));
+        setLoading(false);
+        return;
       }
 
-      // 2. Fetch from API if not found in local cache
       try {
-        const res = await fetch(`${API}/products?category=${encodeURIComponent(name)}`);
+        const res = await fetch(`${API}/products`);
         if (res.ok && isMounted) {
           const data = await res.json();
-          if (data.length > 0) {
-            setProducts(data);
+          if (Array.isArray(data)) {
+            setProducts(filterCategory(data, name));
           } else {
-            const filtered = fallbackProducts.filter(p => p.category?.toLowerCase() === name.toLowerCase());
-            setProducts(filtered.length > 0 ? filtered : fallbackProducts.slice(0, 12));
+            setProducts([]);
           }
         }
       } catch (err) {
         console.error('Category fetch error:', err);
-        if (isMounted) setProducts(fallbackProducts.slice(0, 12));
+        if (isMounted) setProducts([]);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -84,104 +105,118 @@ export default function Category() {
 
   return (
     <>
-      <SEO title={`${displayCategory} Collection`} description={`Explore our exclusive range of ${displayCategory.toLowerCase()} handpicked just for you at SPARKROOT.`} />
-      <div className="min-h-screen bg-white text-slate-900 pt-24 pb-20 px-4">
+      <SEO title={`${displayCategory} Collection — SparkRoot`} description={`Explore our exclusive range of ${displayCategory.toLowerCase()} handpicked just for you at SPARKROOT.`} />
+      <div className="min-h-screen bg-[#f4f4f6] text-slate-900 pt-32 sm:pt-36 pb-20 px-4 sm:px-6 lg:px-8 font-sans">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-12">
-            <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight">
-              <span className="text-slate-400">{displayCategory}</span> Collection
-            </h1>
-            <p className="text-slate-500 mt-4 md:mt-0 max-w-md text-center md:text-right font-medium">
-              Explore our exclusive range of {displayCategory.toLowerCase()} handpicked just for you.
-            </p>
+          
+          {/* Header Banner */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-4 border-b border-gray-200 gap-4">
+            <div>
+              <h1 className="text-2xl md:text-4xl font-extrabold uppercase tracking-tight text-slate-900">
+                {displayCategory} <span className="text-gray-400">Collection</span>
+              </h1>
+              <p className="text-slate-500 text-xs sm:text-sm mt-1 font-medium">
+                Showing luxury items curated for {displayCategory.toLowerCase()}.
+              </p>
+            </div>
+            <span suppressHydrationWarning className="px-3.5 py-1.5 bg-black text-white text-xs font-bold rounded-full">
+              {products.length} Items Available
+            </span>
           </div>
 
           {loading && products.length === 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-6 gap-y-8 sm:gap-y-12">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <div key={i} className="flex flex-col bg-white border border-slate-200/80 p-3 rounded-xl">
-                  <div className="relative aspect-[3/4] bg-slate-200 rounded-lg animate-pulse mb-3 overflow-hidden">
-                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-4 w-3/4 bg-slate-200 rounded animate-pulse" />
-                    <div className="h-5 w-1/2 bg-slate-200 rounded animate-pulse" />
-                    <div className="h-9 w-full bg-slate-200 rounded-md animate-pulse mt-2" />
-                  </div>
+                <div key={i} className="flex flex-col bg-white border border-gray-200 p-4 rounded-2xl animate-pulse space-y-3">
+                  <div className="aspect-square bg-gray-200 rounded-xl" />
+                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                  <div className="h-4 bg-gray-200 rounded w-1/2" />
                 </div>
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-xl text-slate-500 font-medium">No products available in this category right now.</p>
+            <div className="text-center py-20 bg-white border border-gray-200 rounded-3xl">
+              <p className="text-base font-bold text-slate-700">No products available in this category right now.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3 sm:gap-x-6 gap-y-8 sm:gap-y-12">
-              {products.map((product) => (
-                <div
-                  key={product.id}
-                  className="group cursor-pointer flex flex-col bg-white border border-slate-100 p-2 sm:p-3 rounded-xl shadow-xs hover:shadow-lg transition-all duration-300"
-                  onClick={() => navigate(`/product/${product.id}`)}
-                >
-                  <div className="relative aspect-[3/4] overflow-hidden bg-slate-50 border border-slate-200 mb-3 rounded-lg">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.style.display = 'none';
-                      }}
-                    />
-
-                    <button
-                      type="button"
-                      onClick={(e) => handleLike(e, product)}
-                      className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full border border-slate-200 hover:bg-white transition-all z-10 shadow-sm"
-                    >
-                      <Heart size={18} className={likedProducts[product.id] ? 'fill-red-500 text-red-500' : 'text-slate-400'} />
-                    </button>
-
-                    {product.stock <= 0 && (
-                      <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center">
-                        <span className="bg-black text-white font-bold px-4 py-2 rounded-sm uppercase tracking-wider text-xs shadow-sm">
-                          Out of Stock
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex-1 flex flex-col justify-between">
-                    <div>
-                      <h3 className="text-base font-bold text-black line-clamp-1 mb-1 group-hover:text-slate-600 transition">
-                        {product.name}
-                      </h3>
-                      <p className="text-slate-900 font-extrabold text-lg mb-3">PKR {Number(product.price).toLocaleString('en-PK')}</p>
-                    </div>
-
-                    <div className="space-y-2 mt-auto pt-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+              {products.map((product) => {
+                const isLiked = !!likedProducts[product.id];
+                return (
+                  <div
+                    key={product.id}
+                    onClick={() => navigate(`/product/${product.id}`)}
+                    className="bg-white border border-gray-200 rounded-2xl p-3 sm:p-4 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer relative"
+                  >
+                    {/* Top Action Icons */}
+                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
                       <button
                         type="button"
-                        onClick={(e) => handleBuyNow(e, product)}
-                        className="w-full bg-black text-white font-bold py-2.5 px-3 rounded-md flex items-center justify-center gap-2 hover:bg-slate-800 transition uppercase tracking-widest text-xs shadow-xs"
+                        onClick={(e) => handleLike(e, product)}
+                        className="p-1.5 bg-white/90 backdrop-blur-xs rounded-full text-gray-600 hover:text-red-500 hover:scale-110 transition cursor-pointer shadow-xs"
                       >
-                        <Zap size={15} /> Buy Now
+                        <Heart size={14} className={isLiked ? 'fill-red-500 text-red-500' : ''} />
                       </button>
                       <button
                         type="button"
                         onClick={(e) => handleAddClick(e, product)}
-                        className="w-full bg-slate-100 text-black border border-slate-300 font-bold py-2 px-3 rounded-md flex items-center justify-center gap-2 hover:bg-slate-200 transition uppercase tracking-widest text-xs"
+                        className="p-1.5 bg-white/90 backdrop-blur-xs rounded-full text-gray-600 hover:text-black hover:scale-110 transition cursor-pointer shadow-xs"
                       >
-                        <ShoppingCart size={15} /> Add to Cart
+                        <ShoppingBag size={14} />
                       </button>
                     </div>
+
+                    {/* Product Image */}
+                    <div className="aspect-square rounded-xl bg-gray-50 overflow-hidden mb-3 p-2 flex items-center justify-center">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500&auto=format&fit=crop&q=80';
+                        }}
+                      />
+                    </div>
+
+                    {/* Content */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1 text-amber-400">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} size={11} className="fill-amber-400 text-amber-400" />
+                        ))}
+                        <span className="text-[10px] text-gray-400 font-medium ml-1">(4.9)</span>
+                      </div>
+
+                      <h3 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-black transition">
+                        {product.name}
+                      </h3>
+
+                      <div className="flex items-center gap-2 pt-0.5">
+                        <span className="text-xs sm:text-sm font-extrabold text-slate-900">
+                          PKR {Number(product.price).toLocaleString('en-PK')}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Buy Now Button */}
+                    <div className="mt-3 pt-1">
+                      <button
+                        type="button"
+                        onClick={(e) => handleBuyNow(e, product)}
+                        className="w-full bg-black hover:bg-slate-800 text-white font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 text-[11px] sm:text-xs tracking-wider transition-all cursor-pointer"
+                      >
+                        <Zap size={13} className="text-amber-300" />
+                        <span>Buy Now</span>
+                      </button>
+                    </div>
+
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
+
         </div>
       </div>
     </>

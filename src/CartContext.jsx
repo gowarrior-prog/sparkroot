@@ -73,7 +73,7 @@ export function CartProvider({ children }) {
 
     if (!options.silent) {
       const name = product.name ? `"${product.name.slice(0, 30)}${product.name.length > 30 ? '...' : ''}"` : 'Item';
-      addToast(`${name} has been added to your cart!`, 'success');
+      addToast(`${name} has been added to your cart!`, 'success', 'Added To Cart');
     }
   };
 
@@ -90,7 +90,7 @@ export function CartProvider({ children }) {
   const removeItem = (cartKeyOrId, silent = false) => {
     setCartItems(prev => prev.filter(item => (item.cartKey || item.id) !== cartKeyOrId));
     if (!silent) {
-      addToast('Your product is deleted', 'delete');
+      addToast('Your product is deleted', 'delete', 'Cart Updated');
     }
   };
 

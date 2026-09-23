@@ -7,7 +7,6 @@ import { useCart } from './CartContext';
 import { useState, useEffect } from 'react';
 import SEO from './SEO';
 import { API } from './api';
-import { products as fallbackProducts } from './dataproducts';
 
 export default function Wishlist() {
   const { addToCart, likedProducts, likedProductsData, toggleLike } = useCart();
@@ -22,13 +21,13 @@ export default function Wishlist() {
         const res = await fetch(`${API}/products`);
         if (res.ok) {
           const data = await res.json();
-          setApiProducts(data);
+          setApiProducts(Array.isArray(data) ? data : []);
         } else {
-          setApiProducts(fallbackProducts);
+          setApiProducts([]);
         }
       } catch (err) {
         console.error('Failed to fetch products for wishlist:', err);
-        setApiProducts(fallbackProducts);
+        setApiProducts([]);
       } finally {
         setLoading(false);
       }
@@ -39,13 +38,11 @@ export default function Wishlist() {
   // Get liked product IDs
   const likedIds = Object.keys(likedProducts).filter(id => likedProducts[id]);
 
-  // Build liked items from API data first, then fallback products, then saved data
+  // Build liked items from API data first, then saved data
   const likedItems = likedIds.map(id => {
     const numId = parseInt(id);
     const fromApi = apiProducts.find(p => p.id === numId || p.id === id);
     if (fromApi) return fromApi;
-    const fromFallback = fallbackProducts.find(p => p.id === numId);
-    if (fromFallback) return fromFallback;
     if (likedProductsData[id]) return likedProductsData[id];
     return {
       id: numId || id,

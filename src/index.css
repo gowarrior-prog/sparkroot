@@ -43,7 +43,6 @@ h1, h2, h3, h4, h5, h6 {
   text-wrap: balance;
 }
 
-/* Automatically fix cramped uppercase letters across the website */
 .uppercase.tracking-tight {
   letter-spacing: 0.05em !important;
 }
@@ -56,7 +55,6 @@ h1.uppercase, h2.uppercase, h3.uppercase {
   letter-spacing: 0.05em;
 }
 
-/* Luxury typography utilities */
 .font-editorial {
   font-family: var(--font-serif);
 }
@@ -69,13 +67,36 @@ h1.uppercase, h2.uppercase, h3.uppercase {
   letter-spacing: 0.06em;
 }
 
-/* Tabular numbers for clean prices and badges */
 .price-value, [data-price] {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
 
-/* ──────────────── MODERN ANIMATIONS & MICRO-INTERACTIONS ──────────────── */
+/* ──────────────── CATEGORY SLIDE DOWN & SLIDE LEFT ANIMATIONS ──────────────── */
+
+@keyframes categorySlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) scaleY(0.92);
+    transform-origin: top center;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+    transform-origin: top center;
+  }
+}
+
+@keyframes categorySlideLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
@@ -97,14 +118,12 @@ h1.uppercase, h2.uppercase, h3.uppercase {
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulseGlow {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.85; }
+.animate-category-slide-down {
+  animation: categorySlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+.animate-category-slide-left {
+  animation: categorySlideLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-fade-in {
@@ -121,10 +140,6 @@ h1.uppercase, h2.uppercase, h3.uppercase {
 
 .animate-slide-down {
   animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 2s ease-in-out infinite;
 }
 
 /* Fast hover & active interactions */
@@ -155,9 +170,8 @@ button:active, a:active {
   background: #94a3b8;
 }
 
-/* Glassmorphism utility */
 .glass {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-}
+}

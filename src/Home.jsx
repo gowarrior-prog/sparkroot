@@ -1,21 +1,19 @@
 'use client';
 
 import Hero from './Hero';
-import PressTicker from './components/home/PressTicker';
-import CategoryShowcase from './components/home/CategoryShowcase';
+import TrustBadges from './components/home/TrustBadges';
+import ShopByCategory from './components/home/ShopByCategory';
 import FeaturedProducts from './FeaturedProducts';
-import WhyLuxe from './WhyLuxe';
+import PromoBanners from './components/home/PromoBanners';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-slate-50">
       <Hero />
-      <PressTicker />
-      <CategoryShowcase />
-      <div id="featured-products">
-        <FeaturedProducts />
-      </div>
-      <WhyLuxe />
+      <TrustBadges />
+      <ShopByCategory />
+      <FeaturedProducts />
+      <PromoBanners />
     </main>
   );
 }

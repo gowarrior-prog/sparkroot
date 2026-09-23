@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/prisma.js';
-import { products as fallbackProducts } from '../../../dataproducts.js';
 
 const formatProduct = (p) => {
   let sizesList = [];
@@ -47,25 +46,10 @@ export async function GET(request) {
       console.warn('Prisma DB query failed, using fallback products:', dbErr.message);
     }
 
-    // If database is empty or returns no products, use fallback products!
-    if (!products || products.length === 0) {
-      let filtered = fallbackProducts;
-      if (search) {
-        filtered = filtered.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
-      }
-      if (category) {
-        filtered = filtered.filter(p => 
-          p.category.toLowerCase().includes(category.toLowerCase()) ||
-          (category.toLowerCase() === 'jewelry' && (p.category.toLowerCase().includes('jewel') || p.name.toLowerCase().includes('ring') || p.name.toLowerCase().includes('earring') || p.name.toLowerCase().includes('necklace')))
-        );
-      }
-      products = filtered.length > 0 ? filtered : fallbackProducts;
-    }
-
     const formatted = products.map(formatProduct);
     return NextResponse.json(formatted);
   } catch (error) {
-    console.error('Error fetching products, serving fallback:', error);
-    return NextResponse.json(fallbackProducts.map(formatProduct));
+    console.error('Error fetching products:', error);
+    return NextResponse.json([]);
   }
 }

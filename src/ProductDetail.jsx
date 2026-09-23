@@ -5,7 +5,6 @@ import { useParams, useNavigate, Link } from './lib/routerCompat';
 import { ArrowLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { useCart } from './CartContext';
 import { API } from './api';
-import { products as fallbackProducts } from './dataproducts';
 import ProductSkeleton from './components/product/ProductSkeleton';
 import ProductGallery from './components/product/ProductGallery';
 import ProductInfo from './components/product/ProductInfo';
@@ -30,15 +29,11 @@ export default function ProductDetail() {
         setProduct(data);
         if (!selectedImage) setSelectedImage(data.image || null);
       } else {
-        const fallback = fallbackProducts.find(p => String(p.id) === String(id));
-        setProduct(fallback || null);
-        if (!selectedImage) setSelectedImage(fallback?.image || null);
+        setProduct(null);
       }
     } catch (err) {
       console.error('Error fetching product:', err);
-      const fallback = fallbackProducts.find(p => String(p.id) === String(id));
-      setProduct(fallback || null);
-      if (!selectedImage) setSelectedImage(fallback?.image || null);
+      setProduct(null);
     } finally {
       setLoading(false);
     }

@@ -63,7 +63,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, stats }) {
         <NavItem id="dashboard" icon={LayoutDashboard} label="Dashboard" activeTab={activeTab} setActiveTab={setActiveTab} />
         <NavItem id="products"  icon={Package}         label="Products"  activeTab={activeTab} setActiveTab={setActiveTab} count={stats?.totalProducts} />
         <NavItem id="orders"    icon={ShoppingBag}     label="Orders"    activeTab={activeTab} setActiveTab={setActiveTab} count={stats?.totalOrders} />
-        <NavItem id="reviews"   icon={MessageSquare}   label="Reviews"   activeTab={activeTab} setActiveTab={setActiveTab} />
+        <NavItem id="reviews"   icon={MessageSquare}   label="Reviews & Messages" activeTab={activeTab} setActiveTab={setActiveTab} />
         <NavItem id="users"     icon={Users}           label="Users"     activeTab={activeTab} setActiveTab={setActiveTab} count={stats?.totalUsers} />
       </div>
 
