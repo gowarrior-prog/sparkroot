@@ -157,6 +157,7 @@ export default function MyOrders() {
                   totalSpentAmount={totalSpentAmount}
                   safeFormatPrice={safeFormatPrice}
                   setActiveTab={setActiveTab}
+                  setUser={setUser}
                 />
               )}
 
