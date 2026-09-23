@@ -113,34 +113,52 @@ export default function AdminOrders({ orders, onRefresh, getAuthHeaders, handleA
               </div>
 
               {/* Delivery Info */}
-              {(o.address || o.phone || o.city || o.name) && (
-                <div className="px-4 py-2 bg-slate-50/70 rounded-lg border border-slate-100 flex flex-wrap gap-6 text-xs">
-                  {(o.name || o.user?.name) && (
+              {(() => {
+                let rawAddress = o.address || '';
+                let city = o.city || '';
+                let postalCode = o.postalCode || '';
+                let streetAddress = rawAddress;
+
+                if (rawAddress.includes('(Port/Zip Code:')) {
+                  const parts = rawAddress.split('(Port/Zip Code:');
+                  if (parts[1]) postalCode = parts[1].replace(')', '').trim();
+                  rawAddress = parts[0].trim();
+                }
+
+                if (!city && rawAddress.includes(',')) {
+                  const commaIdx = rawAddress.lastIndexOf(',');
+                  city = rawAddress.substring(commaIdx + 1).trim();
+                  streetAddress = rawAddress.substring(0, commaIdx).trim();
+                } else if (rawAddress.includes(',')) {
+                  const commaIdx = rawAddress.lastIndexOf(',');
+                  streetAddress = rawAddress.substring(0, commaIdx).trim();
+                }
+
+                return (
+                  <div className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-2 sm:grid-cols-5 gap-4 text-xs">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Customer Name</p>
-                      <p className="font-medium text-slate-900">{o.name || o.user?.name}</p>
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-0.5">Customer Name</p>
+                      <p className="font-bold text-slate-900">{o.name || o.user?.name || 'Customer'}</p>
                     </div>
-                  )}
-                  {o.city && (
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">City</p>
-                      <p className="font-medium text-slate-900">{o.city}</p>
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-0.5">Street Address</p>
+                      <p className="font-bold text-slate-900">{streetAddress || 'Not Provided'}</p>
                     </div>
-                  )}
-                  {o.address && (
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Delivery Address</p>
-                      <p className="font-medium text-slate-900">{o.address}</p>
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-0.5">City</p>
+                      <p className="font-bold text-slate-900 bg-amber-100 text-amber-900 px-2 py-0.5 rounded w-fit text-[11px]">{city || 'Not Provided'}</p>
                     </div>
-                  )}
-                  {o.phone && (
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Phone Number</p>
-                      <p className="font-medium text-slate-900">{o.phone}</p>
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-0.5">Port / Zip Code</p>
+                      <p className="font-bold text-slate-900 bg-slate-200 text-slate-800 px-2 py-0.5 rounded w-fit text-[11px]">{postalCode || 'Not Provided'}</p>
                     </div>
-                  )}
-                </div>
-              )}
+                    <div>
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-0.5">Phone Number</p>
+                      <p className="font-bold text-slate-900">{o.phone || 'Not Provided'}</p>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Order Items */}
               {parsedItems.length > 0 && (

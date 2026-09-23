@@ -122,20 +122,18 @@ export default function Checkout() {
         size: i.selectedSize || i.size || null,
         color: i.selectedColor || i.color || null
       }));
-      const fullAddress = `${formData.address}${formData.city ? `, ${formData.city}` : ''}${formData.postalCode ? ` (Port/Zip Code: ${formData.postalCode})` : ''}`;
-
       const res = await fetch(`${API}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({
           total,
           items: itemData,
-          address: fullAddress,
-          phone: formData.phone,
-          email: formData.email,
-          name: formData.fullName,
-          city: formData.city,
-          postalCode: formData.postalCode
+          address: formData.address.trim(),
+          phone: formData.phone.trim(),
+          email: formData.email.trim(),
+          name: formData.fullName.trim(),
+          city: formData.city.trim(),
+          postalCode: formData.postalCode.trim()
         })
       });
 

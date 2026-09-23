@@ -172,26 +172,51 @@ export default function UserOrdersTab({ loading, filteredOrders, orderFilter, se
                 )}
               </div>
 
-              {(order.address || order.city || order.name) && (
-                <div className="pt-3 border-t border-gray-100 text-[11px] text-gray-500 flex flex-wrap items-center gap-3 font-medium">
-                  {order.address && (
-                    <div className="flex items-center gap-1.5">
-                      <Truck size={14} className="text-gray-400 shrink-0" />
-                      <span className="truncate">Shipping to: {order.address}</span>
+              {(() => {
+                let rawAddress = order.address || '';
+                let city = order.city || '';
+                let postalCode = order.postalCode || '';
+                let streetAddress = rawAddress;
+
+                if (rawAddress.includes('(Port/Zip Code:')) {
+                  const parts = rawAddress.split('(Port/Zip Code:');
+                  if (parts[1]) postalCode = parts[1].replace(')', '').trim();
+                  rawAddress = parts[0].trim();
+                }
+
+                if (!city && rawAddress.includes(',')) {
+                  const commaIdx = rawAddress.lastIndexOf(',');
+                  city = rawAddress.substring(commaIdx + 1).trim();
+                  streetAddress = rawAddress.substring(0, commaIdx).trim();
+                } else if (rawAddress.includes(',')) {
+                  const commaIdx = rawAddress.lastIndexOf(',');
+                  streetAddress = rawAddress.substring(0, commaIdx).trim();
+                }
+
+                return (
+                  <div className="pt-3 border-t border-gray-100 text-[11px] text-gray-600 flex flex-wrap items-center gap-2 font-medium">
+                    <div className="flex items-center gap-1">
+                      <Truck size={13} className="text-gray-400 shrink-0" />
+                      <span><strong>Address:</strong> {streetAddress || 'Not Provided'}</span>
                     </div>
-                  )}
-                  {order.city && (
-                    <span className="bg-gray-100 text-slate-900 px-2 py-0.5 rounded font-bold text-[10px]">
-                      City: {order.city}
-                    </span>
-                  )}
-                  {(order.name || order.fullName) && (
-                    <span className="bg-gray-100 text-slate-900 px-2 py-0.5 rounded font-bold text-[10px]">
-                      Customer: {order.name || order.fullName}
-                    </span>
-                  )}
-                </div>
-              )}
+                    {city && (
+                      <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded font-bold text-[10px]">
+                        City: {city}
+                      </span>
+                    )}
+                    {postalCode && (
+                      <span className="bg-slate-200 text-slate-800 px-2 py-0.5 rounded font-bold text-[10px]">
+                        Port/Zip: {postalCode}
+                      </span>
+                    )}
+                    {order.phone && (
+                      <span className="bg-gray-100 text-slate-900 px-2 py-0.5 rounded font-bold text-[10px]">
+                        Phone: {order.phone}
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           ))}
         </div>
