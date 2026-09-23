@@ -111,14 +111,25 @@ export default function MyOrders() {
       <div className="min-h-screen bg-[#f4f4f6] text-slate-900 pt-6 sm:pt-10 pb-24 sm:pb-16 font-sans">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="flex items-center justify-between mb-4">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-slate-900 hover:bg-black hover:text-white shadow-2xs transition cursor-pointer"
-            >
-              <Home size={16} />
-              <span>Back to Home</span>
-            </Link>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-slate-900 hover:bg-black hover:text-white shadow-2xs transition cursor-pointer"
+              >
+                <Home size={16} />
+                <span>Back to Home</span>
+              </Link>
+
+              {user?.role === 'admin' && (
+                <Link
+                  to="/admin"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-amber-400 hover:bg-amber-500 text-black rounded-xl text-xs font-extrabold uppercase tracking-wider shadow-sm transition cursor-pointer"
+                >
+                  ⚡ Admin Panel
+                </Link>
+              )}
+            </div>
 
             <button
               onClick={() => setIsMobileDrawerOpen(true)}

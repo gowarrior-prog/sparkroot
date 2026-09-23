@@ -45,6 +45,8 @@ export function addMemoryOrder(orderData) {
   const newOrder = {
     id: Date.now() + Math.floor(Math.random() * 1000),
     userId: orderData.userId || 1,
+    name: orderData.name || '',
+    city: orderData.city || '',
     total: Number(orderData.total) || 0,
     status: 'pending',
     items: typeof orderData.items === 'string' ? orderData.items : JSON.stringify(orderData.items || []),

@@ -42,6 +42,16 @@ export default function UserMobileDrawer({ isMobileDrawerOpen, setIsMobileDrawer
               <span>Home</span>
             </Link>
 
+            {user?.role === 'admin' && (
+              <Link
+                to="/admin"
+                onClick={() => setIsMobileDrawerOpen(false)}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider text-black bg-amber-400 hover:bg-amber-500 transition shadow-2xs"
+              >
+                <span>⚡ Open Admin Panel</span>
+              </Link>
+            )}
+
             {navMenuItems.map((item) => {
               const isActive = activeTab === item.id;
               return (

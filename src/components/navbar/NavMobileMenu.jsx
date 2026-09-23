@@ -33,27 +33,6 @@ export default function NavMobileMenu({ isMobileCategoryOpen, setIsMobileCategor
             </button>
           </div>
 
-          {/* Quick Nav Links (HOME & CONTACT) */}
-          <div className="p-4 border-b border-gray-100 bg-[#f4f4f6] space-y-2">
-            <Link
-              to="/"
-              onClick={() => setIsMobileCategoryOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-slate-900 bg-white border border-gray-200 hover:bg-black hover:text-white transition shadow-2xs"
-            >
-              <Home size={18} />
-              <span>Home</span>
-            </Link>
-
-            <Link
-              to="/contact"
-              onClick={() => setIsMobileCategoryOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-slate-900 bg-white border border-gray-200 hover:bg-black hover:text-white transition shadow-2xs"
-            >
-              <Mail size={18} />
-              <span>Contact Us</span>
-            </Link>
-          </div>
-
           {/* Categories */}
           <div className="p-4 space-y-1">
             <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 px-3 py-2">
@@ -89,20 +68,33 @@ export default function NavMobileMenu({ isMobileCategoryOpen, setIsMobileCategor
         {/* Footer Account Link */}
         <div className="p-4 border-t border-gray-100 bg-[#f4f4f6] space-y-2">
           {user ? (
-            <button
-              onClick={() => {
-                setIsMobileCategoryOpen(false);
-                navigate('/my-orders');
-              }}
-              className="w-full py-3 bg-black text-white font-bold rounded-xl text-xs uppercase tracking-wider"
-            >
-              My Account Dashboard
-            </button>
+            <>
+              {user.role === 'admin' && (
+                <button
+                  onClick={() => {
+                    setIsMobileCategoryOpen(false);
+                    navigate('/admin');
+                  }}
+                  className="w-full py-3 bg-amber-400 hover:bg-amber-500 text-black font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-sm transition cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>⚡ Admin Panel</span>
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  setIsMobileCategoryOpen(false);
+                  navigate(user.role === 'admin' ? '/admin' : '/my-orders');
+                }}
+                className="w-full py-3 bg-slate-950 hover:bg-slate-800 text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-sm transition cursor-pointer"
+              >
+                {user.role === 'admin' ? 'My Account Dashboard' : 'My Account & Orders'}
+              </button>
+            </>
           ) : (
             <Link
               to="/signin"
               onClick={() => setIsMobileCategoryOpen(false)}
-              className="w-full block text-center py-3 bg-black text-white font-bold rounded-xl text-xs uppercase tracking-wider"
+              className="w-full block text-center py-3 bg-slate-950 hover:bg-slate-800 text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-sm transition cursor-pointer"
             >
               Sign In to Account
             </Link>

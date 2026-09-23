@@ -103,18 +103,44 @@ export default function Checkout() {
 
     try {
       const itemData = checkoutItems.map(i => ({
-        id: i.id, name: i.name, quantity: i.quantity, price: i.price, image: i.image || '', size: i.selectedSize || null, color: i.selectedColor || null
+        id: i.id,
+        name: i.name,
+        quantity: i.quantity,
+        price: i.price,
+        image: i.image || '',
+        size: i.selectedSize || i.size || null,
+        color: i.selectedColor || i.color || null
       }));
       const fullAddress = `${formData.address}${formData.city ? `, ${formData.city}` : ''}`;
 
       const res = await fetch(`${API}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ total, items: itemData, address: fullAddress, phone: formData.phone, email: formData.email })
+        body: JSON.stringify({
+          total,
+          items: itemData,
+          address: fullAddress,
+          phone: formData.phone,
+          email: formData.email,
+          name: formData.fullName,
+          city: formData.city
+        })
       });
 
       if (!res.ok) {
-        const placedOrder = { id: Date.now(), userId: 1, total, status: 'pending', items: itemData, address: fullAddress, phone: formData.phone, email: formData.email, createdAt: new Date().toISOString() };
+        const placedOrder = {
+          id: Date.now(),
+          userId: 1,
+          total,
+          status: 'pending',
+          items: itemData,
+          address: fullAddress,
+          phone: formData.phone,
+          email: formData.email,
+          name: formData.fullName,
+          city: formData.city,
+          createdAt: new Date().toISOString()
+        };
         try {
           const local = JSON.parse(localStorage.getItem('sparkroot_user_orders') || '[]');
           local.unshift(placedOrder);

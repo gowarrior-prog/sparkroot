@@ -84,7 +84,7 @@ export default function AdminOrders({ orders, onRefresh, getAuthHeaders, handleA
                 <div className="flex items-center gap-4">
                   <span className="text-slate-500 text-xs font-mono font-bold">#{o.id}</span>
                   <div>
-                    <p className="font-bold text-sm text-black">{o.user?.name || 'Customer'}</p>
+                    <p className="font-bold text-sm text-black">{o.name || o.userName || o.user?.name || 'Customer'}</p>
                     <p className="text-xs text-slate-500 font-medium">{o.email || o.user?.email}</p>
                   </div>
                 </div>
@@ -113,8 +113,20 @@ export default function AdminOrders({ orders, onRefresh, getAuthHeaders, handleA
               </div>
 
               {/* Delivery Info */}
-              {(o.address || o.phone) && (
+              {(o.address || o.phone || o.city || o.name) && (
                 <div className="px-4 py-2 bg-slate-50/70 rounded-lg border border-slate-100 flex flex-wrap gap-6 text-xs">
+                  {(o.name || o.user?.name) && (
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Customer Name</p>
+                      <p className="font-medium text-slate-900">{o.name || o.user?.name}</p>
+                    </div>
+                  )}
+                  {o.city && (
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">City</p>
+                      <p className="font-medium text-slate-900">{o.city}</p>
+                    </div>
+                  )}
                   {o.address && (
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Delivery Address</p>
@@ -142,9 +154,19 @@ export default function AdminOrders({ orders, onRefresh, getAuthHeaders, handleA
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold text-slate-900 truncate">{item.name || 'Product Item'}</p>
-                          <p className="text-[11px] text-slate-500">
-                            Qty: {item.quantity || 1} × PKR {Number(item.price || 0).toLocaleString('en-PK')}
-                          </p>
+                          <div className="flex items-center gap-2 flex-wrap text-[11px] text-slate-500 mt-0.5">
+                            <span>Qty: {item.quantity || 1} × PKR {Number(item.price || 0).toLocaleString('en-PK')}</span>
+                            {(item.size || item.selectedSize) && (
+                              <span className="bg-slate-950 text-white font-extrabold px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider">
+                                Size: {item.size || item.selectedSize}
+                              </span>
+                            )}
+                            {(item.color || item.selectedColor) && (
+                              <span className="bg-slate-200 text-slate-800 font-bold px-1.5 py-0.5 rounded text-[10px] uppercase">
+                                Color: {item.color || item.selectedColor}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <p className="text-xs font-extrabold text-slate-900 shrink-0">PKR {((item.price || 0) * (item.quantity || 1)).toLocaleString('en-PK')}</p>
                       </div>

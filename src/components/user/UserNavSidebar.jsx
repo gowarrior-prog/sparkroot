@@ -1,5 +1,6 @@
 import React from 'react';
 import { User, LogOut } from 'lucide-react';
+import { Link } from '../../lib/routerCompat';
 
 export default function UserNavSidebar({ user, activeTab, setActiveTab, navMenuItems, handleLogout }) {
   return (
@@ -16,6 +17,14 @@ export default function UserNavSidebar({ user, activeTab, setActiveTab, navMenuI
         </div>
 
         <nav className="space-y-1">
+          {user?.role === 'admin' && (
+            <Link
+              to="/admin"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-extrabold uppercase tracking-wider text-black bg-amber-400 hover:bg-amber-500 transition shadow-2xs mb-2"
+            >
+              <span>⚡ Open Admin Panel</span>
+            </Link>
+          )}
           {navMenuItems.map((item) => {
             const isActive = activeTab === item.id;
             return (

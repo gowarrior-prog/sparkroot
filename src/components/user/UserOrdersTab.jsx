@@ -95,7 +95,19 @@ export default function UserOrdersTab({ loading, filteredOrders, orderFilter, se
                         </div>
                         <div>
                           <p className="font-bold text-slate-900 line-clamp-1">{item.name || `Product Item`}</p>
-                          <p className="text-[10px] text-gray-500 font-medium">Qty: {item.quantity || 1}</p>
+                          <div className="flex items-center gap-2 flex-wrap text-[10px] text-gray-500 font-medium">
+                            <span>Qty: {item.quantity || 1}</span>
+                            {(item.size || item.selectedSize) && (
+                              <span className="bg-slate-950 text-white font-extrabold px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider">
+                                Size: {item.size || item.selectedSize}
+                              </span>
+                            )}
+                            {(item.color || item.selectedColor) && (
+                              <span className="bg-gray-100 text-slate-800 font-bold px-1.5 py-0.5 rounded text-[9px] uppercase border border-gray-200">
+                                Color: {item.color || item.selectedColor}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <span className="font-bold text-slate-900">
@@ -111,10 +123,24 @@ export default function UserOrdersTab({ loading, filteredOrders, orderFilter, se
                 )}
               </div>
 
-              {order.address && (
-                <div className="pt-3 border-t border-gray-100 text-[11px] text-gray-500 flex items-center gap-2 font-medium">
-                  <Truck size={14} className="text-gray-400 shrink-0" />
-                  <span className="truncate">Shipping to: {order.address}</span>
+              {(order.address || order.city || order.name) && (
+                <div className="pt-3 border-t border-gray-100 text-[11px] text-gray-500 flex flex-wrap items-center gap-3 font-medium">
+                  {order.address && (
+                    <div className="flex items-center gap-1.5">
+                      <Truck size={14} className="text-gray-400 shrink-0" />
+                      <span className="truncate">Shipping to: {order.address}</span>
+                    </div>
+                  )}
+                  {order.city && (
+                    <span className="bg-gray-100 text-slate-900 px-2 py-0.5 rounded font-bold text-[10px]">
+                      City: {order.city}
+                    </span>
+                  )}
+                  {(order.name || order.fullName) && (
+                    <span className="bg-gray-100 text-slate-900 px-2 py-0.5 rounded font-bold text-[10px]">
+                      Customer: {order.name || order.fullName}
+                    </span>
+                  )}
                 </div>
               )}
             </div>
