@@ -66,24 +66,10 @@ export default function UserOrdersTab({ loading, filteredOrders, orderFilter, se
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:px-6 rounded-2xl border border-gray-200">
+      <div className="bg-white p-4 sm:px-6 rounded-2xl border border-gray-200">
         <div>
           <h2 className="text-lg font-extrabold text-slate-900 uppercase">My Order History</h2>
           <p className="text-xs text-gray-500">Track and view details of your past purchases.</p>
-        </div>
-
-        <div className="flex items-center gap-1 bg-[#f4f4f6] p-1 rounded-xl w-full sm:w-auto">
-          {['all', 'pending', 'shipped', 'delivered'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setOrderFilter(tab)}
-              className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition ${
-                orderFilter === tab ? 'bg-black text-white shadow-xs' : 'text-gray-600 hover:text-black'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
         </div>
       </div>
 
