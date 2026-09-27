@@ -1,7 +1,7 @@
 Add-Type -AssemblyName System.Drawing
 
-function Process-CategoryImage($srcPath) {
-    Write-Host "Processing $srcPath ..."
+function Process-CategoryImage($srcPath, $targetSize = 72.0) {
+    Write-Host "Processing $srcPath with target size $targetSize ..."
     $bytes = [System.IO.File]::ReadAllBytes($srcPath)
     $ms = New-Object System.IO.MemoryStream(,$bytes)
     $src = [System.Drawing.Bitmap]::FromStream($ms)
@@ -40,9 +40,8 @@ function Process-CategoryImage($srcPath) {
     $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
     $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
 
-    # Fit object inside 135x135 area inside 200x200 canvas
-    $targetMaxDim = 135.0
-    $scale = [Math]::Min($targetMaxDim / $objW, $targetMaxDim / $objH)
+    # Fit object inside ~72px target size inside 200x200 canvas to match all other category icons
+    $scale = [Math]::Min($targetSize / $objW, $targetSize / $objH)
     $finalW = [int]($objW * $scale)
     $finalH = [int]($objH * $scale)
 
@@ -72,9 +71,9 @@ function Process-CategoryImage($srcPath) {
     # Save to disk as true PNG
     $targetCanvas.Save($srcPath, [System.Drawing.Imaging.ImageFormat]::Png)
     $targetCanvas.Dispose()
-    Write-Host "Successfully processed $srcPath to 200x200 Pure White PNG!"
+    Write-Host "Successfully processed $srcPath to 200x200 PNG (Inner Object: ${finalW}x${finalH})!"
 }
 
-Process-CategoryImage "d:\clne\sparkroot\public\images\categories\electronics.png"
-Process-CategoryImage "d:\clne\sparkroot\public\images\categories\fashion.png"
-Process-CategoryImage "d:\clne\sparkroot\public\images\categories\toys.png"
+Process-CategoryImage "d:\clne\sparkroot\public\images\categories\electronics.png" 72.0
+Process-CategoryImage "d:\clne\sparkroot\public\images\categories\fashion.png" 72.0
+Process-CategoryImage "d:\clne\sparkroot\public\images\categories\toys.png" 75.0

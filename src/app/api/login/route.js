@@ -29,18 +29,21 @@ export async function POST(request) {
       }
     });
 
-    // 2. If no user found in DB at all, check if it's initial seed admin login
-    if (!user && (cleanInput === ADMIN_USERNAME || cleanInput === ADMIN_EMAIL)) {
-      if (password === ADMIN_PASSWORD) {
-        const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
-        user = await prisma.user.create({
-          data: {
-            name: ADMIN_USERNAME,
-            email: ADMIN_EMAIL,
-            password: hashedPassword,
-            role: 'admin'
-          }
-        });
+    // 2. If no admin user exists in DB at all, seed initial admin user
+    if (!user) {
+      const adminCount = await prisma.user.count({ where: { role: 'admin' } });
+      if (adminCount === 0 && (cleanInput === ADMIN_USERNAME || cleanInput === ADMIN_EMAIL)) {
+        if (password === ADMIN_PASSWORD) {
+          const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+          user = await prisma.user.create({
+            data: {
+              name: ADMIN_USERNAME,
+              email: ADMIN_EMAIL,
+              password: hashedPassword,
+              role: 'admin'
+            }
+          });
+        }
       }
     }
 
@@ -48,22 +51,10 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid email/username or password' }, { status: 400 });
     }
 
-    // 3. Verify password against DB hash (or fallback env password if initial seed)
-    let isValid = await bcrypt.compare(password, user.password);
-    if (!isValid && (cleanInput === ADMIN_USERNAME || cleanInput === ADMIN_EMAIL || user.role === 'admin') && password === ADMIN_PASSWORD) {
-      isValid = true;
-    }
-
+    // 3. Strictly verify password against database bcrypt hash (no old fallback)
+    const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       return NextResponse.json({ error: 'Invalid email/username or password' }, { status: 400 });
-    }
-
-    // Ensure role is admin if it matches admin credentials or role
-    if ((cleanInput === ADMIN_EMAIL || cleanInput === ADMIN_USERNAME || user.name.toLowerCase() === ADMIN_USERNAME) && user.role !== 'admin') {
-      user = await prisma.user.update({
-        where: { id: user.id },
-        data: { role: 'admin' }
-      });
     }
 
     const token = jwt.sign(
