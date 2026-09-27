@@ -10,6 +10,7 @@ import AdminProducts   from './admin/AdminProducts';
 import AdminOrders     from './admin/AdminOrders';
 import AdminReviews    from './admin/AdminReviews';
 import AdminUsers      from './admin/AdminUsers';
+import AdminSettings   from './admin/AdminSettings';
 
 export default function Admin() {
   const navigate    = useNavigate();
@@ -40,6 +41,10 @@ export default function Admin() {
   });
 
   const fetchData = async () => {
+    if (activeTab === 'settings') {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const map = {
@@ -171,6 +176,7 @@ export default function Admin() {
               {activeTab === 'orders'    && <AdminOrders    orders={orders}      onRefresh={fetchData} getAuthHeaders={getAuthHeaders} handleAuthError={handleAuthError} />}
               {activeTab === 'reviews'   && <AdminReviews   reviews={reviews}    onRefresh={fetchData} getAuthHeaders={getAuthHeaders} handleAuthError={handleAuthError} />}
               {activeTab === 'users'     && <AdminUsers     users={users} />}
+              {activeTab === 'settings'  && <AdminSettings  getAuthHeaders={getAuthHeaders} handleAuthError={handleAuthError} />}
             </div>
           )}
         </div>

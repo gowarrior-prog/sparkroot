@@ -14,77 +14,64 @@ export async function POST(request) {
     let { email, password } = body;
 
     if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+      return NextResponse.json({ error: 'Username/Email and password are required' }, { status: 400 });
     }
 
     const cleanInput = String(email).trim().toLowerCase();
 
-    // Check against admin env variables
-    if (cleanInput === ADMIN_USERNAME || cleanInput === ADMIN_EMAIL) {
-      if (password === ADMIN_PASSWORD) {
-        let adminUser = await prisma.user.findFirst({
-          where: {
-            OR: [
-              { email: ADMIN_EMAIL },
-              { name: ADMIN_USERNAME }
-            ]
-          }
-        });
-        if (!adminUser) {
-          const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
-          adminUser = await prisma.user.create({
-            data: {
-              name: ADMIN_USERNAME,
-              email: ADMIN_EMAIL,
-              password: hashedPassword,
-              role: 'admin'
-            }
-          });
-        } else if (adminUser.role !== 'admin') {
-          adminUser = await prisma.user.update({
-            where: { id: adminUser.id },
-            data: { role: 'admin' }
-          });
-        }
-        const token = jwt.sign({ userId: adminUser.id, email: adminUser.email, role: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
-        return NextResponse.json({
-          message: 'Admin login successful',
-          token,
-          user: { id: adminUser.id, name: adminUser.name, email: adminUser.email, role: 'admin' }
-        });
-      } else {
-        return NextResponse.json({ error: 'Invalid admin credentials' }, { status: 400 });
-      }
-    }
-
-    // Standard user login
+    // 1. Search database for matching user by email or name (case-insensitive)
     let user = await prisma.user.findFirst({
       where: {
         OR: [
-          { email: cleanInput },
-          { name: cleanInput }
+          { email: { equals: cleanInput, mode: 'insensitive' } },
+          { name: { equals: cleanInput, mode: 'insensitive' } }
         ]
       }
     });
 
+    // 2. If no user found in DB at all, check if it's initial seed admin login
+    if (!user && (cleanInput === ADMIN_USERNAME || cleanInput === ADMIN_EMAIL)) {
+      if (password === ADMIN_PASSWORD) {
+        const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+        user = await prisma.user.create({
+          data: {
+            name: ADMIN_USERNAME,
+            email: ADMIN_EMAIL,
+            password: hashedPassword,
+            role: 'admin'
+          }
+        });
+      }
+    }
+
     if (!user) {
-      return NextResponse.json({ error: 'Invalid email or password' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid email/username or password' }, { status: 400 });
     }
 
-    const isValid = await bcrypt.compare(password, user.password);
+    // 3. Verify password against DB hash (or fallback env password if initial seed)
+    let isValid = await bcrypt.compare(password, user.password);
+    if (!isValid && (cleanInput === ADMIN_USERNAME || cleanInput === ADMIN_EMAIL || user.role === 'admin') && password === ADMIN_PASSWORD) {
+      isValid = true;
+    }
+
     if (!isValid) {
-      return NextResponse.json({ error: 'Invalid email or password' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid email/username or password' }, { status: 400 });
     }
 
-    const isAdmin = cleanInput === ADMIN_EMAIL || cleanInput === ADMIN_USERNAME || user.email.toLowerCase() === ADMIN_EMAIL || user.name.toLowerCase() === ADMIN_USERNAME;
-    if (isAdmin && user.role !== 'admin') {
+    // Ensure role is admin if it matches admin credentials or role
+    if ((cleanInput === ADMIN_EMAIL || cleanInput === ADMIN_USERNAME || user.name.toLowerCase() === ADMIN_USERNAME) && user.role !== 'admin') {
       user = await prisma.user.update({
         where: { id: user.id },
         data: { role: 'admin' }
       });
     }
 
-    const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign(
+      { userId: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
     return NextResponse.json({
       message: 'Login successful',
       token,

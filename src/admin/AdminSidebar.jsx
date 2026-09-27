@@ -1,6 +1,6 @@
 'use client';
 
-import { LayoutDashboard, Package, Users, ShoppingBag, MessageSquare, LogOut, ExternalLink, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Package, Users, ShoppingBag, MessageSquare, LogOut, ExternalLink, Sparkles, ShieldCheck } from 'lucide-react';
 import { useNavigate } from '../lib/routerCompat';
 
 const NavItem = ({ id, icon: Icon, label, activeTab, setActiveTab, count }) => {
@@ -65,6 +65,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, stats }) {
         <NavItem id="orders"    icon={ShoppingBag}     label="Orders"    activeTab={activeTab} setActiveTab={setActiveTab} count={stats?.totalOrders} />
         <NavItem id="reviews"   icon={MessageSquare}   label="Reviews & Messages" activeTab={activeTab} setActiveTab={setActiveTab} />
         <NavItem id="users"     icon={Users}           label="Users"     activeTab={activeTab} setActiveTab={setActiveTab} count={stats?.totalUsers} />
+        <NavItem id="settings"  icon={ShieldCheck}     label="Admin Settings" activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
 
       {/* Footer Return & Logout */}
