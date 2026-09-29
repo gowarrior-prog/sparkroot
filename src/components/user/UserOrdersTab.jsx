@@ -1,5 +1,5 @@
 import React from 'react';
-import { Package, Truck } from 'lucide-react';
+import { Package, Truck, CheckCircle } from 'lucide-react';
 import OrderTimerBanner from './OrderTimerBanner';
 import { API } from '../../api';
 import { restoreProductStock, invalidateProductCache } from '../../productStore';
@@ -64,12 +64,18 @@ export default function UserOrdersTab({ loading, filteredOrders, orderFilter, se
     }
   };
 
+  const getDisplayStatusLabel = (status) => {
+    const s = (status || '').toLowerCase();
+    if (s === 'pending') return 'ORDERED';
+    return (status || 'ORDERED').toUpperCase();
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="bg-white p-4 sm:px-6 rounded-2xl border border-gray-200">
         <div>
           <h2 className="text-lg font-extrabold text-slate-900 uppercase">My Order History</h2>
-          <p className="text-xs text-gray-500">Track and view details of your past purchases.</p>
+          <p className="text-xs text-gray-500">Track and view live delivery status of your purchases.</p>
         </div>
       </div>
 
@@ -96,6 +102,17 @@ export default function UserOrdersTab({ loading, filteredOrders, orderFilter, se
             >
               <OrderTimerBanner order={order} onAutoConfirm={handleAutoConfirm} onCancelOrder={handleCancelOrder} />
 
+              {/* Delivered Notification Banner for Customer */}
+              {order.status?.toLowerCase() === 'delivered' && (
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 rounded-xl flex items-center gap-3 animate-fade-in shadow-xs">
+                  <CheckCircle size={24} className="text-emerald-600 shrink-0" />
+                  <div>
+                    <p className="font-extrabold text-xs uppercase tracking-wider text-emerald-950">🎉 YOUR ORDER HAS BEEN DELIVERED!</p>
+                    <p className="text-xs text-emerald-800 font-medium mt-0.5">Your package has been successfully delivered. Thank you for shopping with SparkRoot Atelier!</p>
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-wrap justify-between items-center gap-3 pb-4 border-b border-gray-100">
                 <div>
                   <span className="text-xs font-extrabold uppercase tracking-wider text-slate-900 block">
@@ -107,8 +124,8 @@ export default function UserOrdersTab({ loading, filteredOrders, orderFilter, se
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${getStatusBadgeClass(order.status)}`}>
-                    {order.status || 'Pending'}
+                  <span className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider border ${getStatusBadgeClass(order.status)}`}>
+                    {getDisplayStatusLabel(order.status)}
                   </span>
                   <span className="text-sm font-extrabold text-slate-900">
                     PKR {safeFormatPrice(order.price || order.total)}

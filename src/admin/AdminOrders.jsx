@@ -1,20 +1,37 @@
 'use client';
 
 import React from 'react';
-import { Clock, Trash2, AlertTriangle } from 'lucide-react';
+import { Clock, Trash2, AlertTriangle, CheckCircle, Truck, PackageCheck } from 'lucide-react';
 import { API } from '../api';
 import OrderTimerBanner from '../components/user/OrderTimerBanner';
 
 export default function AdminOrders({ orders, onRefresh, getAuthHeaders, handleAuthError }) {
   const updateStatus = async (id, status) => {
-    if (!window.confirm(`Mark order #${id} as ${status}?`)) return;
-    const res = await fetch(`${API}/admin/orders/${id}`, {
-      method: 'PATCH',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ status })
-    });
-    handleAuthError(res.status);
-    onRefresh();
+    if (!window.confirm(`Update order #${id} status to '${status}'?`)) return;
+    try {
+      const res = await fetch(`${API}/admin/orders/${id}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ status })
+      });
+      handleAuthError(res.status);
+
+      // Also update local storage sparkroot_user_orders for instant sync
+      try {
+        const stored = localStorage.getItem('sparkroot_user_orders');
+        if (stored) {
+          let parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            parsed = parsed.map(o => String(o.id) === String(id) ? { ...o, status } : o);
+            localStorage.setItem('sparkroot_user_orders', JSON.stringify(parsed));
+          }
+        }
+      } catch {}
+
+      onRefresh();
+    } catch (err) {
+      console.error('Update status failed:', err);
+    }
   };
 
   const deleteSingleOrder = async (id) => {
@@ -44,19 +61,27 @@ export default function AdminOrders({ orders, onRefresh, getAuthHeaders, handleA
     onRefresh();
   };
 
-  const statusClass = (status) => ({
-    'Canceled':  'bg-red-50 text-red-600 border-red-200',
-    'confirmed': 'bg-indigo-50 text-indigo-600 border-indigo-200',
-    'delivered': 'bg-emerald-50 text-emerald-600 border-emerald-200',
-    'shipped':   'bg-blue-50 text-blue-600 border-blue-200',
-  }[status] || 'bg-slate-100 text-slate-600 border-slate-200');
+  const statusClass = (status) => {
+    const s = (status || '').toLowerCase();
+    if (s === 'canceled' || s === 'cancelled') return 'bg-red-50 text-red-600 border-red-200';
+    if (s === 'confirmed') return 'bg-indigo-50 text-indigo-600 border-indigo-200';
+    if (s === 'shipped') return 'bg-sky-50 text-sky-600 border-sky-200';
+    if (s === 'delivered') return 'bg-emerald-50 text-emerald-700 border-emerald-300 font-extrabold';
+    return 'bg-amber-50 text-amber-800 border-amber-200'; // pending / ordered
+  };
+
+  const getStatusLabel = (status) => {
+    const s = (status || '').toLowerCase();
+    if (s === 'pending') return 'ORDERED';
+    return (status || 'ORDERED').toUpperCase();
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200">
         <div>
           <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900">Order Management & Sales History</h3>
-          <p className="text-xs text-slate-500">Manage client orders, status confirmation timers, and sales data.</p>
+          <p className="text-xs text-slate-500">Manage client orders, change status (Ordered → Confirmed → Shipped → Delivered), and clear history.</p>
         </div>
         {orders.length > 0 && (
           <button
@@ -90,25 +115,53 @@ export default function AdminOrders({ orders, onRefresh, getAuthHeaders, handleA
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
                   <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase border flex items-center gap-1 tracking-widest ${statusClass(o.status)}`}>
-                    {o.status === 'Canceled' ? <Trash2 size={12} /> : <Clock size={12} />} {o.status || 'Pending'}
+                    {o.status?.toLowerCase() === 'delivered' ? (
+                      <CheckCircle size={13} className="text-emerald-600" />
+                    ) : o.status === 'Canceled' ? (
+                      <Trash2 size={12} />
+                    ) : (
+                      <Clock size={12} />
+                    )} 
+                    {getStatusLabel(o.status)}
                   </span>
+
                   <span className="font-black text-black text-sm">PKR {Number(o.total || o.price || 0).toLocaleString('en-PK')}</span>
                   <span className="text-slate-400 text-xs font-medium">{new Date(o.createdAt || Date.now()).toLocaleDateString('en-PK')}</span>
-                  {o.status === 'pending' && (
+
+                  {/* Status Action Buttons */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {(o.status === 'pending' || o.status === 'ordered') && (
+                      <button
+                        onClick={() => updateStatus(o.id, 'confirmed')}
+                        className="bg-black hover:bg-slate-800 text-amber-300 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition cursor-pointer"
+                      >
+                        Confirm Order
+                      </button>
+                    )}
+                    {o.status !== 'shipped' && o.status !== 'delivered' && o.status !== 'Canceled' && o.status !== 'cancelled' && (
+                      <button
+                        onClick={() => updateStatus(o.id, 'shipped')}
+                        className="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition cursor-pointer flex items-center gap-1"
+                      >
+                        <Truck size={12} /> Mark Shipped
+                      </button>
+                    )}
+                    {o.status !== 'delivered' && o.status !== 'Canceled' && o.status !== 'cancelled' && (
+                      <button
+                        onClick={() => updateStatus(o.id, 'delivered')}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition cursor-pointer flex items-center gap-1 shadow-xs"
+                      >
+                        <PackageCheck size={13} /> Deliver Order
+                      </button>
+                    )}
                     <button
-                      onClick={() => updateStatus(o.id, 'confirmed')}
-                      className="bg-black hover:bg-slate-800 text-amber-300 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition cursor-pointer"
+                      onClick={() => deleteSingleOrder(o.id)}
+                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition border border-gray-200 cursor-pointer"
+                      title="Delete Order"
                     >
-                      Confirm Order
+                      <Trash2 size={16} />
                     </button>
-                  )}
-                  <button
-                    onClick={() => deleteSingleOrder(o.id)}
-                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition border border-gray-200 cursor-pointer"
-                    title="Delete Order"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  </div>
                 </div>
               </div>
 
